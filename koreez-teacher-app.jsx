@@ -281,6 +281,11 @@ const TIER_LADDER_SEGMENTS = [
   { key: "gold", flex: 12, fill: "#FECD45" },
 ];
 
+/** Gap between tier labels (above) and the bar; marker pulls up into bar by this many px. */
+const TIER_LADDER_LABEL_GAP = 4;
+const TIER_LADDER_LABEL_LINE_HEIGHT = 14;
+const TIER_LADDER_MARKER_OVERLAP_INTO_BAR = 8;
+
 const BREADCRUMB = {
   home: "Home",
   board: "Become an Innovative Education Leader",
@@ -1659,8 +1664,35 @@ function TierProgressLadder({ tier, percentile }) {
     <div>
       <div style={{ position: "relative", width: "100%", height: "fit-content" }}>
         <div
+          aria-hidden
+          style={{
+            display: "flex",
+            marginBottom: TIER_LADDER_LABEL_GAP,
+            width: "100%",
+            lineHeight: `${TIER_LADDER_LABEL_LINE_HEIGHT}px`,
+          }}
+        >
+          {TIER_LADDER_SEGMENTS.map((seg) => (
+            <div
+              key={`label-${seg.key}`}
+              style={{
+                flex: `${seg.flex} 1 0`,
+                minWidth: 0,
+                textAlign: "center",
+                fontSize: 11,
+                fontWeight: 600,
+                color: colors.muted,
+                letterSpacing: 0.2,
+              }}
+            >
+              {TIER_CONFIG[seg.key].label}
+            </div>
+          ))}
+        </div>
+
+        <div
           role="img"
-          aria-label="Tier scale from Bronze through Silver to Gold"
+          aria-label="Tier scale: Bronze, then Silver, then Gold"
           style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", background: colors.border }}
         >
           {TIER_LADDER_SEGMENTS.map((seg) => (
@@ -1682,7 +1714,7 @@ function TierProgressLadder({ tier, percentile }) {
             style={{
               position: "absolute",
               left: `${pct}%`,
-              top: -8,
+              top: -TIER_LADDER_MARKER_OVERLAP_INTO_BAR,
               transform: "translateX(-50%)",
               display: "flex",
               flexDirection: "column",
