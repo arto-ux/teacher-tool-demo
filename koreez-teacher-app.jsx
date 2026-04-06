@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import TeachersRoomPage from "./TeachersRoomPage.jsx";
-import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong } from "./typography-tokens.js";
+import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong, typoPageHeading } from "./typography-tokens.js";
 import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse, Card as AntdCard } from "antd";
 import {
   HomeOutlined,
@@ -673,7 +673,7 @@ function MyAchievementsWidget({
       {showHeading ? (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ ...typoStyle("heading4"), fontWeight: 700, color: colors.ink }}>Become an Innovative Education Leader</div>
+            <div className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink }}>Become an Innovative Education Leader</div>
             <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 6 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
           </div>
           {interactive ? (
@@ -757,7 +757,7 @@ function HomePage({ onOpenBoard }) {
 
       {/* CLASSES */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ ...typoStyle("heading4"), fontWeight: 700, color: colors.ink }}>My Classes</div>
+        <div className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink }}>My Classes</div>
         <Button type="primary" icon={<PlusOutlined />}>
           New Assignment
         </Button>
@@ -851,7 +851,7 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
     <>
       <div style={{ marginBottom: 24 }}>
         <div style={{ textAlign: "left", minWidth: 0 }}>
-          <div style={{ ...typoStyle("heading3"), fontWeight: 700, color: colors.ink }}>Innovative Education Leaders</div>
+          <div className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink }}>Innovative Education Leaders</div>
           <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 6 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
         </div>
       </div>
@@ -1165,7 +1165,7 @@ function StudentsPage() {
           height: "fit-content",
         }}
       >
-        <h1 style={{ ...typoStyle("heading3"), fontWeight: 700, color: colors.ink, margin: "0 0 16px" }}>
+        <h1 className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: "0 0 16px" }}>
           My Students
         </h1>
         <AntdCard

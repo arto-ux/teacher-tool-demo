@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
-import { TYPO, typoStyle, typoStrong } from "./typography-tokens.js";
+import { TYPO, typoStyle, typoStrong, typoPageHeading } from "./typography-tokens.js";
 import {
   Button,
   Modal,
@@ -33,7 +33,7 @@ import {
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
-const { Text, Link, Title } = Typography;
+const { Text, Link } = Typography;
 
 /** Kept on post objects for backwards compatibility; not shown in the UI. */
 const DEFAULT_POST_CATEGORY = "general";
@@ -748,9 +748,9 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
   return (
     <div style={{ maxWidth: 1160, margin: "0 auto" }}>
       <div style={{ marginBottom: 28 }}>
-        <Title level={2} style={{ margin: 0, ...typoStyle("heading3"), color: APP_COLORS.ink }}>
+        <h1 className="koreez-page-heading" style={{ margin: 0, ...typoPageHeading(), color: APP_COLORS.ink }}>
           Teachers Room
-        </Title>
+        </h1>
       </div>
 
       <InviteCommunityBlock teachersInvitedCount={teachersInvitedCount} onInvite={() => setInviteOpen(true)} />

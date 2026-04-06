@@ -62,6 +62,15 @@ export function typoStrong(key) {
 }
 
 /**
+ * Primary in-app page / section titles (nav destinations): H3 metrics, bold.
+ * Pair with `className="koreez-page-heading"` (see src/index.css) so weight wins over Ant reset/CSS-in-JS.
+ * Add `color` and `margin` at call sites.
+ */
+export function typoPageHeading() {
+  return { ...typoStyle("heading3"), fontWeight: 700 };
+}
+
+/**
  * Partial Ant Design `theme.token` font map for `ConfigProvider`.
  * Heading `lineHeightHeadingN` are unitless multipliers (linePx / sizePx).
  */

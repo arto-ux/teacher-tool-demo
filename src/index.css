@@ -1,0 +1,6 @@
+/* Page titles using typoPageHeading() — metrics match TYPO.heading3 (24/32). */
+.koreez-page-heading {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700 !important;
+}
