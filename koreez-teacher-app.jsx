@@ -4,6 +4,7 @@ import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStron
 import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse, Card as AntdCard } from "antd";
 import {
   HomeOutlined,
+  HomeFilled,
   CheckSquareOutlined,
   QuestionCircleOutlined,
   MailOutlined,
@@ -753,6 +754,19 @@ function MyAchievementsWidget({
 function HomePage({ onOpenBoard }) {
   return (
     <>
+      <div
+        style={{
+          marginBottom: 12,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          ...typoStyle("base"),
+          color: colors.text,
+        }}
+      >
+        <HomeFilled style={{ fontSize: TYPO.small.fontSize, color: "rgb(61, 61, 61)", flexShrink: 0 }} aria-hidden />
+        {MY_SCHOOL_NAME}
+      </div>
       <MyAchievementsWidget onOpenBoard={onOpenBoard} />
 
       {/* CLASSES */}
