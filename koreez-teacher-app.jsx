@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import TeachersRoomPage from "./TeachersRoomPage.jsx";
+import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong } from "./typography-tokens.js";
 import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse, Card as AntdCard } from "antd";
 import {
   HomeOutlined,
@@ -20,6 +21,7 @@ import {
   UserOutlined,
   DeleteOutlined,
   UserAddOutlined,
+  GiftOutlined,
   CommentOutlined,
   PlusOutlined,
   SendOutlined,
@@ -39,10 +41,22 @@ function discountPromoImageSrc() {
   return `${prefix}assets/images/discountbadge.png`;
 }
 
+function qrCodeImageSrc() {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  return `${prefix}assets/images/qr-code.png`;
+}
+
 function koreezCoolSvgSrc() {
   const base = import.meta.env.BASE_URL ?? "/";
   const prefix = base.endsWith("/") ? base : `${base}/`;
   return `${prefix}assets/images/koreez_cool.svg`;
+}
+
+function tierMedalAssetUrl(filename) {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  return `${prefix}assets/images/${filename}`;
 }
 
 /** Cycles `01_teacher.png` … `10_teacher.png` from `/assets/images/`; you keep the profile photo. */
@@ -220,10 +234,33 @@ const NEARBY = [
 ];
 
 const TIER_CONFIG = {
-  gold: { color: "#C5960C", bg: "#FDF8E8", border: "#E8D48A", icon: "🥇", label: "Gold" },
-  silver: { color: "#6B7B8D", bg: "#EDF1F5", border: "#C5CED6", icon: "🥈", label: "Silver" },
-  bronze: { color: "#9A6B3A", bg: "#F9F2EB", border: "#D4B896", icon: "🥉", label: "Bronze" },
+  gold: { color: "#C5960C", bg: "#FDF8E8", border: "#E8D48A", medalFile: "gold-medal.svg", label: "Gold" },
+  silver: { color: "#6B7B8D", bg: "#EDF1F5", border: "#C5CED6", medalFile: "bronze-medal.svg", label: "Silver" },
+  bronze: { color: "#9A6B3A", bg: "#F9F2EB", border: "#D4B896", medalFile: "bronze-medal-1.svg", label: "Bronze" },
 };
+
+/** Tier medal artwork (`public/assets/images/*-medal*.svg`). Natural size 48×60; `height` scales width proportionally. */
+function TierMedalImage({ tier, height = 48, style, alt = "" }) {
+  const file = TIER_CONFIG[tier]?.medalFile;
+  if (!file) return null;
+  return (
+    <img
+      src={tierMedalAssetUrl(file)}
+      alt={alt}
+      aria-hidden={alt === "" ? true : undefined}
+      width={48}
+      height={60}
+      style={{
+        height,
+        width: "auto",
+        display: "block",
+        objectFit: "contain",
+        flexShrink: 0,
+        ...style,
+      }}
+    />
+  );
+}
 
 /** Shown under each tier heading on the leaderboard tab */
 const LEADERBOARD_TIER_DESCRIPTIONS = {
@@ -260,7 +297,7 @@ const NAV_ITEMS_2 = [
   { key: "events", Icon: QrcodeOutlined, label: "Sent Invitations" },
 ];
 
-const navIconStyle = { fontSize: 16, width: 20, display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0 };
+const navIconStyle = { ...typoStyle("large"), width: 20, display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0 };
 
 // ── STYLES ──
 const colors = {
@@ -299,7 +336,7 @@ function AppBreadcrumb({ page, onGoHome }) {
   if (page === "home") {
     return (
       <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", minHeight: 40 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: colors.ink }}>{BREADCRUMB.home}</span>
+        <span style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>{BREADCRUMB.home}</span>
       </nav>
     );
   }
@@ -318,15 +355,15 @@ function AppBreadcrumb({ page, onGoHome }) {
           padding: 0,
           cursor: "pointer",
           fontFamily: "inherit",
-          fontSize: 13,
+          ...typoStyle("base"),
           fontWeight: 500,
           color: colors.muted,
         }}
       >
         {BREADCRUMB.home}
       </button>
-      <span style={{ color: colors.lightGray, padding: "0 8px", fontSize: 13, userSelect: "none" }} aria-hidden="true">/</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: colors.ink }}>{segment}</span>
+      <span style={{ color: colors.lightGray, padding: "0 8px", ...typoStyle("base"), userSelect: "none" }} aria-hidden="true">/</span>
+      <span style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>{segment}</span>
     </nav>
   );
 }
@@ -357,7 +394,8 @@ export default function App() {
     page === "home" || page === "teachersRoom" || page === "students" || page === "board";
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: "#FFFFFF" }}>
+    <ConfigProvider theme={{ token: getKoreezAntdFontTokens() }}>
+    <div style={{ minHeight: "100vh", fontFamily: KOREEZ_FONT_FAMILY, background: "#FFFFFF" }}>
       {/* SIDEBAR — fixed full viewport height; nav scrolls; profile pinned to bottom */}
       <aside
         style={{
@@ -406,7 +444,7 @@ export default function App() {
                 aria-current={active ? "page" : undefined}
                 onClick={() => handlePrimaryNavClick(item.key)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", fontSize: 14,
+                  display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", ...typoStyle("base"),
                   fontWeight: active ? 600 : 500,
                   color: active ? colors.blue : colors.text,
                   background: active ? "#EBF4FF" : "transparent",
@@ -420,7 +458,7 @@ export default function App() {
             );
           })}
 
-          <div style={{ fontSize: 11, fontWeight: 700, color: colors.lightGray, padding: "20px 24px 8px", letterSpacing: 0.5 }}>Koreez 2026</div>
+          <div style={{ ...typoStrong("small"), color: colors.lightGray, padding: "20px 24px 8px", letterSpacing: 0.5 }}>Koreez 2026</div>
 
           {NAV_ITEMS_2.map((item) => {
             const Icon = item.Icon;
@@ -430,7 +468,7 @@ export default function App() {
                 type="button"
                 onClick={handleSecondaryNavClick}
                 style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", fontSize: 14,
+                  display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", ...typoStyle("base"),
                   fontWeight: 500, color: colors.text, background: "transparent",
                   border: "none", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit",
                 }}
@@ -454,8 +492,8 @@ export default function App() {
           }}
         >
           <TeacherAvatar size={32} alt={TEACHER.name} />
-          <span style={{ fontSize: 14, fontWeight: 600, color: colors.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{TEACHER.name}</span>
-          <span style={{ marginLeft: "auto", color: colors.lightGray, fontSize: 16, flexShrink: 0 }}>›</span>
+          <span style={{ ...typoStyle("base"), fontWeight: 600, color: colors.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{TEACHER.name}</span>
+          <span style={{ marginLeft: "auto", color: colors.lightGray, ...typoStyle("large"), flexShrink: 0 }}>›</span>
         </div>
       </aside>
 
@@ -514,8 +552,8 @@ export default function App() {
               fontFamily: "inherit",
             }}
           >
-            <BellOutlined style={{ fontSize: 18 }} />
-            <span style={{ position: "absolute", top: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: colors.red, color: "white", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>5</span>
+            <BellOutlined style={{ fontSize: TYPO.heading4.fontSize }} />
+            <span style={{ position: "absolute", top: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: colors.red, color: "white", ...typoStyle("small"), fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>5</span>
           </button>
         </header>
 
@@ -548,6 +586,7 @@ export default function App() {
         </div>
       </main>
     </div>
+    </ConfigProvider>
   );
 }
 
@@ -628,14 +667,14 @@ function MyAchievementsWidget({
             e.currentTarget.style.color = colors.ink;
           }}
         >
-          <ArrowDownOutlined style={{ fontSize: 16 }} />
+          <ArrowDownOutlined style={{ fontSize: TYPO.large.fontSize }} />
         </button>
       ) : null}
       {showHeading ? (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: colors.ink }}>Become an Innovative Education Leader</div>
-            <div style={{ fontSize: 13, color: colors.muted, marginTop: 6, lineHeight: 1.5 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
+            <div style={{ ...typoStyle("heading4"), fontWeight: 700, color: colors.ink }}>Become an Innovative Education Leader</div>
+            <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 6 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
           </div>
           {interactive ? (
             <button
@@ -660,7 +699,7 @@ function MyAchievementsWidget({
                 color: colors.ink,
                 cursor: "pointer",
                 fontFamily: "inherit",
-                fontSize: 13,
+                ...typoStyle("base"),
                 fontWeight: 600,
                 transition: "background 0.15s",
               }}
@@ -670,15 +709,15 @@ function MyAchievementsWidget({
               onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; }}
             >
               <span>Leaderboard</span>
-              <RightOutlined style={{ fontSize: 14 }} aria-hidden />
+              <RightOutlined style={{ fontSize: TYPO.base.fontSize }} aria-hidden />
             </button>
           ) : null}
         </div>
       ) : null}
       <div style={{ display: "flex", alignItems: "center", gap: 28, marginBottom: showProgressLadder ? 16 : 0 }}>
         <div style={{ textAlign: "center", minWidth: 72, flexShrink: 0 }}>
-          <div style={{ fontSize: 38, fontWeight: 800, color: colors.ink, lineHeight: 1, letterSpacing: -1.5 }}>{TEACHER.score}</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 }}>Score</div>
+          <div style={{ ...typoStyle("heading1"), fontWeight: 800, color: colors.ink, lineHeight: 1, letterSpacing: -1.5 }}>{TEACHER.score}</div>
+          <div style={{ ...typoStrong("small"), color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 }}>Score</div>
         </div>
 
         <div style={{ width: 1, height: 44, background: colors.border, flexShrink: 0 }} />
@@ -689,6 +728,7 @@ function MyAchievementsWidget({
             <StatBlock label={rankStatLabel} value={`#${displayRank}`} />
             {showWeeklyTasks ? (
               <StatBlock
+                gap={4}
                 label={`Tasks this week ${TEACHER.weeklyDone}/${TEACHER.weeklyTotal}`}
                 value={<WeeklyDots done={TEACHER.weeklyDone} total={TEACHER.weeklyTotal} />}
                 labelStyle={{ height: "fit-content" }}
@@ -717,7 +757,7 @@ function HomePage({ onOpenBoard }) {
 
       {/* CLASSES */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: colors.ink }}>My Classes</div>
+        <div style={{ ...typoStyle("heading4"), fontWeight: 700, color: colors.ink }}>My Classes</div>
         <Button type="primary" icon={<PlusOutlined />}>
           New Assignment
         </Button>
@@ -732,9 +772,9 @@ function HomePage({ onOpenBoard }) {
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.blue; e.currentTarget.style.boxShadow = "0 2px 12px rgba(41,144,255,0.08)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.boxShadow = "none"; }}
           >
-            <div style={{ fontSize: 17, fontWeight: 700, color: colors.ink, marginBottom: 10 }}>{cls.name}</div>
+            <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink, marginBottom: 10 }}>{cls.name}</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontSize: 13, color: colors.muted, lineHeight: 1.5 }}>
+              <div style={{ ...typoStyle("base"), color: colors.muted }}>
                 <strong style={{ color: colors.text, fontWeight: 600 }}>{cls.section}</strong><br />
                 {cls.students} students
               </div>
@@ -785,7 +825,7 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
         gap: 8,
         flexShrink: 0,
         padding: "8px 14px",
-        fontSize: 13,
+        ...typoStyle("base"),
         fontWeight: 600,
         fontFamily: "inherit",
         color: colors.ink,
@@ -802,7 +842,7 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
         e.currentTarget.style.background = "white";
       }}
     >
-      <ExclamationCircleOutlined style={{ fontSize: 16, color: colors.blue }} aria-hidden />
+      <ExclamationCircleOutlined style={{ fontSize: TYPO.large.fontSize, color: colors.blue }} aria-hidden />
       Rules
     </button>
   );
@@ -811,15 +851,15 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
     <>
       <div style={{ marginBottom: 24 }}>
         <div style={{ textAlign: "left", minWidth: 0 }}>
-          <div style={{ fontSize: 22, fontWeight: 700, color: colors.ink, lineHeight: 1.25 }}>Innovative Education Leaders</div>
-          <div style={{ fontSize: 13, color: colors.muted, marginTop: 6 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
+          <div style={{ ...typoStyle("heading3"), fontWeight: 700, color: colors.ink }}>Innovative Education Leaders</div>
+          <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 6 }}>{LEADERBOARD_ACADEMIC_LINE}</div>
         </div>
       </div>
 
       <Drawer
         id="board-rules-drawer"
         title={(
-          <span style={{ fontSize: 16, fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
+          <span style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
             Scoring rules
           </span>
         )}
@@ -879,7 +919,7 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
         ]}
       />
 
-      <div style={{ textAlign: "center", fontSize: 12, color: colors.lightGray, marginTop: 20 }}>
+      <div style={{ textAlign: "center", ...typoStyle("small"), color: colors.lightGray, marginTop: 20 }}>
         Koreez · Tier rankings update weekly
       </div>
     </>
@@ -912,6 +952,50 @@ const STUDENT_PREMIUM_BENEFITS_ITEMS = [
   "Train specifically for Koreez competitions",
   "Get early access to new learning features",
 ];
+
+function StudentDiscountInviteModalContent({ hint, url, qrAlt }) {
+  return (
+    <>
+      <p style={{ ...typoStyle("base"), color: colors.muted, marginTop: 0 }}>{hint}</p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 16,
+          padding: 12,
+          background: colors.card,
+          borderRadius: 8,
+          border: `1px solid ${colors.border}`,
+        }}
+      >
+        <span style={{ ...typoStrong("small"), color: colors.text }}>Scan to open</span>
+        <img
+          src={qrCodeImageSrc()}
+          alt={qrAlt}
+          width={200}
+          height={200}
+          style={{ width: 200, height: "auto", display: "block", borderRadius: 6 }}
+        />
+      </div>
+      <div
+        style={{
+          ...typoStyle("small"),
+          wordBreak: "break-all",
+          fontFamily: "ui-monospace, monospace",
+          padding: 12,
+          background: colors.bg,
+          borderRadius: 8,
+          border: `1px solid ${colors.border}`,
+          marginBottom: 0,
+        }}
+      >
+        {url}
+      </div>
+    </>
+  );
+}
 
 function StudentsPage() {
   useEffect(() => {
@@ -951,22 +1035,10 @@ function StudentsPage() {
 
   const openBulkLinkModal = () => {
     setBulkLinkUrl(buildBulkYearlyDiscountUrl({ allRoster: true, classId: null }));
-    setBulkLinkTitle("Share link · all students");
+    setBulkLinkTitle("Invite students");
     setBulkLinkHint("Students who open this link see yearly Premium with your 50% teacher discount applied.");
     setBulkLinkOpen(true);
   };
-
-  const openStudentDiscountLinkModal = useCallback(
-    (row) => {
-      setBulkLinkUrl(buildBulkYearlyDiscountUrl({ allRoster: false, classId: row.classId }));
-      setBulkLinkTitle(`Send discount link · ${row.name}`);
-      setBulkLinkHint(
-        `Share this link with ${row.name} (${classLabel(classById[row.classId])}). They see yearly Premium with your 50% teacher discount when they open it.`,
-      );
-      setBulkLinkOpen(true);
-    },
-    [classById],
-  );
 
   const confirmPayForStudent = () => {
     if (!payFor) return;
@@ -1031,7 +1103,7 @@ function StudentsPage() {
                   { key: "profile", label: "View Profile", icon: <UserOutlined /> },
                   ...(row.isPremium
                     ? []
-                    : [{ key: "sendDiscount", label: "Send discount link", icon: <SendOutlined /> }]),
+                    : [{ key: "sendDiscount", label: "Send class discount", icon: <SendOutlined /> }]),
                   {
                     key: "pay",
                     label: "Pay for Student",
@@ -1050,7 +1122,7 @@ function StudentsPage() {
                   if (key === "profile") {
                     setProfileFor(row);
                   } else if (key === "sendDiscount") {
-                    openStudentDiscountLinkModal(row);
+                    message.success(`Class discount sent to ${row.name}.`);
                   } else if (key === "pay") {
                     setPayFor(row);
                   } else if (key === "remove") {
@@ -1072,7 +1144,7 @@ function StudentsPage() {
               <Button
                 type="text"
                 size="small"
-                icon={<MoreOutlined style={{ fontSize: 18 }} />}
+                icon={<MoreOutlined style={{ fontSize: TYPO.heading4.fontSize }} />}
                 aria-label={`More actions for ${row.name}`}
                 aria-haspopup="menu"
                 style={{ color: colors.ink }}
@@ -1082,7 +1154,7 @@ function StudentsPage() {
         },
       },
     ],
-    [classById, openClassInviteModal, openStudentDiscountLinkModal],
+    [classById, openClassInviteModal],
   );
 
   return (
@@ -1093,7 +1165,7 @@ function StudentsPage() {
           height: "fit-content",
         }}
       >
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.ink, margin: "0 0 16px", lineHeight: 1.25 }}>
+        <h1 style={{ ...typoStyle("heading3"), fontWeight: 700, color: colors.ink, margin: "0 0 16px" }}>
           My Students
         </h1>
         <AntdCard
@@ -1126,28 +1198,26 @@ function StudentsPage() {
             <div style={{ flex: "1 1 200px", minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: 17,
+                  ...typoStyle("heading5"),
                   fontWeight: 700,
                   color: colors.ink,
                   margin: "0 0 4px 0",
-                  lineHeight: 1.25,
                 }}
               >
                 Class access discount
               </div>
               <p
                 style={{
-                  fontSize: 13,
+                  ...typoStyle("base"),
                   color: "rgba(0, 0, 0, 0.88)",
                   margin: "0 0 16px 0",
-                  lineHeight: 1.55,
                 }}
               >
                 Share your teacher discount (50% off) on the <strong>yearly</strong> Premium plan only.
               </p>
               <Space wrap>
-                <Button type="primary" icon={<CopyOutlined />} onClick={openBulkLinkModal}>
-                  Copy discount link
+                <Button type="primary" icon={<GiftOutlined />} onClick={openBulkLinkModal}>
+                  Invite
                 </Button>
                 <Button onClick={() => setPremiumBenefitsDrawerOpen(true)}>Learn more</Button>
               </Space>
@@ -1159,7 +1229,7 @@ function StudentsPage() {
       <Drawer
         id="student-premium-benefits-drawer"
         title={(
-          <span style={{ fontSize: 16, fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
+          <span style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
             What students get with Premium
           </span>
         )}
@@ -1187,7 +1257,7 @@ function StudentsPage() {
       </Drawer>
 
       {CLASSES.length === 0 ? (
-        <div style={{ fontSize: 14, color: colors.muted, padding: "24px 0" }}>
+        <div style={{ ...typoStyle("base"), color: colors.muted, padding: "24px 0" }}>
           No classes configured.
         </div>
       ) : (
@@ -1256,7 +1326,7 @@ function StudentsPage() {
                     label: (
                       <span
                         id={`students-class-${cls.id}`}
-                        style={{ fontSize: 17, fontWeight: 700, color: colors.ink, lineHeight: 1.3 }}
+                        style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink }}
                       >
                         {classLabel(cls)}
                       </span>
@@ -1288,70 +1358,47 @@ function StudentsPage() {
         title={bulkLinkTitle}
         open={bulkLinkOpen}
         onCancel={() => setBulkLinkOpen(false)}
+        width={520}
         footer={[
+          <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={() => copyTextToClipboard(bulkLinkUrl)}>
+            Copy link
+          </Button>,
           <Button key="close" onClick={() => setBulkLinkOpen(false)}>
             Close
           </Button>,
-          <Button
-            key="copy"
-            type="primary"
-            icon={<CopyOutlined />}
-            onClick={() => copyTextToClipboard(bulkLinkUrl)}
-          >
-            Copy link
-          </Button>,
         ]}
       >
-        <p style={{ fontSize: 13, color: colors.muted, marginTop: 0 }}>{bulkLinkHint}</p>
-        <div
-          style={{
-            fontSize: 12,
-            wordBreak: "break-all",
-            fontFamily: "ui-monospace, monospace",
-            padding: 12,
-            background: colors.bg,
-            borderRadius: 8,
-            border: `1px solid ${colors.border}`,
-          }}
-        >
-          {bulkLinkUrl}
-        </div>
+        <StudentDiscountInviteModalContent
+          hint={bulkLinkHint}
+          url={bulkLinkUrl}
+          qrAlt="QR code for the student invitation link"
+        />
       </Modal>
 
       <Modal
         title={inviteClassId ? `Invite student · ${classLabel(classById[inviteClassId])}` : "Invite student"}
         open={!!inviteClassId}
         onCancel={() => setInviteClassId(null)}
+        width={520}
         footer={[
+          <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={() => copyTextToClipboard(inviteStudentUrl)}>
+            Copy link
+          </Button>,
           <Button key="close" onClick={() => setInviteClassId(null)}>
             Close
           </Button>,
-          <Button
-            key="copy"
-            type="primary"
-            icon={<CopyOutlined />}
-            onClick={() => copyTextToClipboard(inviteStudentUrl)}
-          >
-            Copy link
-          </Button>,
         ]}
       >
-        <p style={{ fontSize: 13, color: colors.muted, marginTop: 0 }}>
-          Share this invite link with a new student for <strong>{inviteClassId ? classLabel(classById[inviteClassId]) : ""}</strong>. It opens yearly Premium with your teacher discount (class-scoped link).
-        </p>
-        <div
-          style={{
-            fontSize: 12,
-            wordBreak: "break-all",
-            fontFamily: "ui-monospace, monospace",
-            padding: 12,
-            background: colors.bg,
-            borderRadius: 8,
-            border: `1px solid ${colors.border}`,
-          }}
-        >
-          {inviteStudentUrl}
-        </div>
+        <StudentDiscountInviteModalContent
+          hint={(
+            <>
+              Share this invite link with a new student for{" "}
+              <strong>{inviteClassId ? classLabel(classById[inviteClassId]) : ""}</strong>. It opens yearly Premium with your teacher discount (class-scoped link).
+            </>
+          )}
+          url={inviteStudentUrl}
+          qrAlt="QR code for the class-scoped student invite link"
+        />
       </Modal>
 
       <Modal
@@ -1365,25 +1412,25 @@ function StudentsPage() {
         ]}
       >
         {profileFor ? (
-          <div style={{ fontSize: 14, color: colors.text, lineHeight: 1.6 }}>
+          <div style={{ ...typoStyle("base"), color: colors.text, lineHeight: 1.6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
               <Avatar src={studentAvatarSrc(profileFor.id)} size={64} alt="" />
               <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: colors.ink }}>{profileFor.name}</div>
-                <div style={{ fontSize: 13, color: colors.muted, marginTop: 4 }}>
+                <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink }}>{profileFor.name}</div>
+                <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 4 }}>
                   {classLabel(classById[profileFor.classId])}
                 </div>
               </div>
             </div>
             <div style={{ display: "grid", gap: 10 }}>
               <div>
-                <span style={{ color: colors.muted, fontSize: 12 }}>Status</span>
+                <span style={{ color: colors.muted, ...typoStyle("small") }}>Status</span>
                 <div style={{ marginTop: 2 }}>
                   {profileFor.isPremium ? <Tag color="success">Premium</Tag> : <Tag>Free</Tag>}
                 </div>
               </div>
               <div>
-                <span style={{ color: colors.muted, fontSize: 12 }}>Active until</span>
+                <span style={{ color: colors.muted, ...typoStyle("small") }}>Active until</span>
                 <div style={{ marginTop: 2 }}>
                   {profileFor.isPremium && profileFor.activeTill
                     ? new Date(profileFor.activeTill).toLocaleDateString(undefined, {
@@ -1408,12 +1455,12 @@ function StudentsPage() {
         okButtonProps={{ icon: <DollarOutlined /> }}
       >
         {payFor ? (
-          <p style={{ fontSize: 13, color: colors.text, marginTop: 0 }}>
+          <p style={{ ...typoStyle("base"), color: colors.text, marginTop: 0 }}>
             You will be charged for <strong>one year</strong> of Premium at the teacher rate, and{" "}
             <strong>{payFor.name}</strong> will be activated immediately after payment succeeds.
           </p>
         ) : null}
-        <p style={{ fontSize: 12, color: colors.muted, marginBottom: 0 }}>
+        <p style={{ ...typoStyle("small"), color: colors.muted, marginBottom: 0 }}>
           {/* TODO: payment provider */}
           Demo: confirming skips checkout and toggles Premium locally.
         </p>
@@ -1451,7 +1498,7 @@ function LeaderboardScoreTab({
       />
 
       {leaderboardCaption ? (
-        <div style={{ fontSize: 13, color: colors.muted, marginBottom: 16, lineHeight: 1.55 }}>
+        <div style={{ ...typoStyle("base"), color: colors.muted, marginBottom: 16 }}>
           {leaderboardCaption}
         </div>
       ) : null}
@@ -1464,7 +1511,7 @@ function LeaderboardScoreTab({
             key={tierKey}
             title={(
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 22, lineHeight: 1 }} role="img" aria-hidden>{t.icon}</span>
+                <TierMedalImage tier={tierKey} height={32} style={{ display: "block" }} />
                 <span>{t.label}</span>
               </span>
             )}
@@ -1480,7 +1527,7 @@ function LeaderboardScoreTab({
                 />
               ))
             ) : (
-              <div style={{ fontSize: 13, color: colors.muted, padding: "8px 0" }}>No teachers in this tier in the current list.</div>
+              <div style={{ ...typoStyle("base"), color: colors.muted, padding: "8px 0" }}>No teachers in this tier in the current list.</div>
             )}
           </Card>
         );
@@ -1491,7 +1538,7 @@ function LeaderboardScoreTab({
 
 function StudentPremiumBenefitsDrawerContent() {
   return (
-    <div style={{ fontSize: 14, color: colors.text, lineHeight: 1.6 }}>
+    <div style={{ ...typoStyle("base"), color: colors.text, lineHeight: 1.6 }}>
       <p style={{ margin: "0 0 16px", color: colors.ink }}>{STUDENT_PREMIUM_BENEFITS_INTRO}</p>
       <ul style={{ margin: 0, paddingLeft: 20 }}>
         {STUDENT_PREMIUM_BENEFITS_ITEMS.map((item) => (
@@ -1535,8 +1582,7 @@ function RulesDrawerContent() {
     borderBottom: `1px solid ${colors.border}`,
   };
   const sectionTitleTextStyle = {
-    fontSize: 11,
-    fontWeight: 700,
+    ...typoStrong("small"),
     textTransform: "uppercase",
     letterSpacing: 1.2,
     color: colors.muted,
@@ -1547,21 +1593,21 @@ function RulesDrawerContent() {
       <div style={{ marginBottom: 28 }}>
         {/* Formula */}
         <div style={{ marginBottom: 16, textAlign: "left" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: colors.ink }}>Score = <span style={{ color: colors.blue }}>average grade across all students</span></div>
-          <div style={{ fontSize: 12, color: colors.muted, marginTop: 4 }}>If a student doesn't complete the task, it counts as 0%</div>
+          <div style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink }}>Score = <span style={{ color: colors.blue }}>average grade across all students</span></div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>If a student doesn't complete the task, it counts as 0%</div>
         </div>
 
         {/* Example */}
         <div style={{ background: "#F0FAF0", border: "1px solid rgba(45,138,78,0.15)", borderRadius: 8, padding: 16, marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: colors.ink, marginBottom: 8 }}>Example</div>
-          <div style={{ fontSize: 12, color: colors.text, lineHeight: 1.7 }}>
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink, marginBottom: 8 }}>Example</div>
+          <div style={{ ...typoStyle("small"), color: colors.text, lineHeight: 1.7 }}>
             <p style={{ margin: "0 0 10px" }}>
               You have 14 students and assign one task. Six of them complete it with different percentage of correct answers. The other eight do not hand it in, so each of those counts as 0%.
             </p>
             <p style={{ margin: "0 0 10px" }}>
               System adds every student&apos;s percentage (including all the zeros) calculates the average.
             </p>
-            <p style={{ margin: 0, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontSize: 11, wordBreak: "break-word" }}>
+            <p style={{ margin: 0, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", ...typoStyle("small"), wordBreak: "break-word" }}>
               (90.2 + 85.6 + 76.5 + 88.1 + 12.3 + 44.9 + 0×8) ÷ 14 = 397.6 ÷ 14 = 28.4 points
             </p>
           </div>
@@ -1569,8 +1615,8 @@ function RulesDrawerContent() {
 
         {/* Rules */}
         {rules.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < rules.length - 1 ? `1px solid ${colors.border}` : "none", fontSize: 13, color: colors.text, lineHeight: 1.5 }}>
-            <span style={{ flexShrink: 0, width: 22, textAlign: "center", fontSize: 14 }}>{r.icon}</span>
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < rules.length - 1 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text, lineHeight: 1.5 }}>
+            <span style={{ flexShrink: 0, width: 22, textAlign: "center", fontSize: TYPO.base.fontSize }}>{r.icon}</span>
             <span>{r.text}</span>
           </div>
         ))}
@@ -1586,8 +1632,10 @@ function RulesDrawerContent() {
           { tier: "silver", text: "Top 40%. Certificate of Achievement at year end." },
           { tier: "bronze", text: "Building your score. Certificate of Participation at year end." },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 2 ? `1px solid ${colors.border}` : "none", fontSize: 13, color: colors.text, lineHeight: 1.5 }}>
-            <span style={{ flexShrink: 0, width: 22, textAlign: "center", fontSize: 14 }}>{TIER_CONFIG[item.tier].icon}</span>
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 2 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text, lineHeight: 1.5 }}>
+            <span style={{ flexShrink: 0, width: 22, display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <TierMedalImage tier={item.tier} height={20} style={{ maxWidth: 22 }} />
+            </span>
             <span><strong>{TIER_CONFIG[item.tier].label}</strong> — {item.text}</span>
           </div>
         ))}
@@ -1626,10 +1674,10 @@ function Card({ title, subtitle, children }) {
     <div style={{ background: "white", borderRadius: 12, padding: 24, marginBottom: 16, border: `1px solid ${colors.border}` }}>
       {title ? (
         <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${colors.border}` }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: colors.muted }}>{title}</div>
+          <div style={{ ...typoStrong("small"), textTransform: "uppercase", letterSpacing: 1.2, color: colors.muted }}>{title}</div>
           {subtitle ? (
             <div style={{
-              fontSize: 12,
+              ...typoStyle("small"),
               color: colors.text,
               lineHeight: 1.55,
               marginTop: 8,
@@ -1650,8 +1698,8 @@ function Card({ title, subtitle, children }) {
 function MetricBox({ value, label }) {
   return (
     <div style={{ textAlign: "center", padding: "14px 8px", background: colors.bg, borderRadius: 8 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: colors.ink }}>{value}</div>
-      <div style={{ fontSize: 11, color: colors.muted, marginTop: 4, fontWeight: 500 }}>{label}</div>
+      <div style={{ ...typoStyle("heading3"), fontWeight: 700, color: colors.ink }}>{value}</div>
+      <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4, fontWeight: 500 }}>{label}</div>
     </div>
   );
 }
@@ -1679,8 +1727,7 @@ function TierProgressLadder({ tier, percentile }) {
                 flex: `${seg.flex} 1 0`,
                 minWidth: 0,
                 textAlign: "center",
-                fontSize: 11,
-                fontWeight: 600,
+                ...typoStrong("small"),
                 color: colors.muted,
                 letterSpacing: 0.2,
               }}
@@ -1751,20 +1798,7 @@ function TierMedalCurrentOnly({ tier }) {
       aria-label={`Tier: ${t.label}`}
       style={{ display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}
     >
-      <span
-        style={{
-          fontSize: 48,
-          lineHeight: 1,
-          userSelect: "none",
-          width: 48,
-          height: 48,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {t.icon}
-      </span>
+      <TierMedalImage tier={tier} height={48} style={{ userSelect: "none" }} />
     </div>
   );
 }
@@ -1776,23 +1810,20 @@ function TierMedalsInline({ tier }) {
     <div
       role="img"
       aria-label={`Tier: ${current.label}`}
-      style={{ display: "flex", alignItems: "center", gap: 0, lineHeight: 1 }}
+      style={{ display: "flex", alignItems: "center", gap: 4, lineHeight: 1 }}
     >
       {order.map((key) => (
-        <span
+        <div
           key={key}
           style={{
-            fontSize: 48,
-            lineHeight: 1,
+            lineHeight: 0,
             opacity: key === tier ? 1 : 0.3,
             transition: "opacity 0.2s ease",
             userSelect: "none",
-            width: 48,
-            height: 48,
           }}
         >
-          {TIER_CONFIG[key].icon}
-        </span>
+          <TierMedalImage tier={key} height={48} />
+        </div>
       ))}
     </div>
   );
@@ -1801,8 +1832,9 @@ function TierMedalsInline({ tier }) {
 function TierBadge({ tier }) {
   const t = TIER_CONFIG[tier];
   return (
-    <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: t.bg, color: t.color, border: `1px solid ${t.border}`, display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-      {t.icon} {t.label}
+    <span style={{ ...typoStrong("small"), padding: "3px 10px", borderRadius: 20, background: t.bg, color: t.color, border: `1px solid ${t.border}`, display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+      <TierMedalImage tier={tier} height={18} style={{ display: "block" }} />
+      {t.label}
     </span>
   );
 }
@@ -1813,7 +1845,7 @@ function WeeklyDots({ done, total }) {
   const greyBg = "#F0F2F4";
   return (
     <div
-      style={{ display: "flex", gap: 6, alignItems: "center", height: 16 }}
+      style={{ display: "flex", gap: 6, alignItems: "center", height: 16, paddingTop: 4 }}
       role="img"
       aria-label={`${done} of ${total} weekly tasks completed`}
     >
@@ -1838,7 +1870,7 @@ function WeeklyDots({ done, total }) {
           >
             {checked ? (
               <CheckOutlined
-                style={{ fontSize: 9, color: "white", display: "flex", justifyContent: "flex-start" }}
+                style={{ fontSize: TYPO.small.fontSize, color: "white", display: "flex", justifyContent: "flex-start" }}
               />
             ) : null}
           </div>
@@ -1848,23 +1880,23 @@ function WeeklyDots({ done, total }) {
   );
 }
 
-function StatBlock({ label, value, labelStyle }) {
+function StatBlock({ label, value, labelStyle, gap: columnGap = 0 }) {
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: label ? 6 : 0,
+        gap: columnGap,
         height: "fit-content",
         justifyContent: "flex-start",
         alignItems: "flex-start",
       }}
     >
-      <div style={{ fontSize: 15, fontWeight: 700, color: colors.ink, display: "flex", alignItems: "center" }}>{value}</div>
+      <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink, display: "flex", alignItems: "center" }}>{value}</div>
       {label ? (
         <div
           style={{
-            fontSize: 11,
+            ...typoStyle("small"),
             color: colors.muted,
             fontWeight: 500,
             ...labelStyle,
@@ -1899,7 +1931,7 @@ function LeaderboardRow({ rank, name, score, tier, isYou, rowRef, avatarSrc, sch
           : {}),
       }}
     >
-      <div style={{ width: 36, fontSize: 15, fontWeight: 700, color: isYou ? colors.blue : colors.muted, textAlign: "center", flexShrink: 0 }}>{rank}</div>
+      <div style={{ width: 36, ...typoStyle("heading5"), fontWeight: 700, color: isYou ? colors.blue : colors.muted, textAlign: "center", flexShrink: 0 }}>{rank}</div>
       <img
         src={avatarSrc}
         alt=""
@@ -1918,15 +1950,15 @@ function LeaderboardRow({ rank, name, score, tier, isYou, rowRef, avatarSrc, sch
         }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: isYou ? 700 : 500, color: isYou ? colors.ink : colors.text }}>
+        <div style={{ ...typoStyle("base"), fontWeight: isYou ? 700 : 500, color: isYou ? colors.ink : colors.text }}>
           {name}
-          {isYou && <span style={{ fontSize: 10, fontWeight: 700, color: colors.blue, background: "white", padding: "2px 6px", borderRadius: 4, marginLeft: 6 }}>YOU</span>}
+          {isYou && <span style={{ ...typoStyle("small"), fontWeight: 700, color: colors.blue, background: "white", padding: "2px 6px", borderRadius: 4, marginLeft: 6 }}>YOU</span>}
         </div>
         {school ? (
-          <div style={{ fontSize: 12, color: colors.muted, marginTop: 3, lineHeight: 1.35, fontWeight: 400 }}>{school}</div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 3, lineHeight: 1.35, fontWeight: 400 }}>{school}</div>
         ) : null}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: colors.ink, flexShrink: 0 }}>{score}</div>
+      <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink, flexShrink: 0 }}>{score}</div>
     </div>
   );
 }

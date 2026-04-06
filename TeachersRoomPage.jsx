@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
+import { TYPO, typoStyle, typoStrong } from "./typography-tokens.js";
 import {
   Button,
   Modal,
@@ -27,6 +28,7 @@ import {
   TeamOutlined,
   MoreOutlined,
   PictureOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 
@@ -238,8 +240,8 @@ async function copyTextToClipboard(text) {
 function inviteStarTooltipTitle(count) {
   return (
     <div style={{ maxWidth: 260 }}>
-      <div style={{ fontWeight: 600, marginBottom: 6 }}>Community builder</div>
-      <div style={{ fontSize: 13, lineHeight: 1.45 }}>
+      <div style={{ ...typoStyle("base"), fontWeight: 600, marginBottom: 6 }}>Community builder</div>
+      <div style={{ ...typoStyle("base"), lineHeight: 1.45 }}>
         This badge appears when a teacher has successfully invited <strong>{INVITE_BADGE_MIN} or more</strong> colleagues to join Koreez.
         This profile has <strong>{count}</strong> confirmed invites.
       </div>
@@ -248,9 +250,9 @@ function inviteStarTooltipTitle(count) {
 }
 
 const INVITE_STAR_BADGE_LAYOUT = {
-  staff: { dim: 28, iconSize: 14, offset: -4 },
-  forumPost: { dim: 18, iconSize: 9, offset: -2 },
-  forumComment: { dim: 22, iconSize: 11, offset: -2 },
+  staff: { dim: 28, iconSize: TYPO.base.fontSize, offset: -4 },
+  forumPost: { dim: 18, iconSize: TYPO.small.fontSize, offset: -2 },
+  forumComment: { dim: 22, iconSize: TYPO.small.fontSize, offset: -2 },
 };
 
 /** White star on blue circle, bottom-right of avatar (10+ teacher invites). Hidden on the signed-in user’s staff card — they see progress in the invite banner instead. */
@@ -320,11 +322,11 @@ function ForumAuthorRow({ authorId, authorName, currentTeacherId, liveTeachersIn
         <InviteStarMark count={count} hideOnProfile={false} badgeSize={starBadgeSize} />
       </div>
       <div style={{ minWidth: 0, flex: dateLine ? 1 : undefined }}>
-        <Text strong style={{ color: APP_COLORS.ink, fontSize: isComment ? 13 : 14, lineHeight: 1.35, display: "block" }}>
+        <Text strong style={{ color: APP_COLORS.ink, ...typoStyle("base"), lineHeight: 1.35, display: "block" }}>
           {authorName}
         </Text>
         {dateLine ? (
-          <Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, display: "block", marginTop: 2 }}>
+          <Text type="secondary" style={{ ...typoStyle("small"), lineHeight: 1.4, display: "block", marginTop: 2 }}>
             {dateLine}
           </Text>
         ) : null}
@@ -364,7 +366,7 @@ function InviteeAvatarStack({ teachersInvitedCount }) {
           );
         })}
       </div>
-      <Text type="secondary" style={{ fontSize: 12, marginLeft: 10, lineHeight: 1.4 }}>
+      <Text type="secondary" style={{ ...typoStyle("small"), marginLeft: 10, lineHeight: 1.4 }}>
         {label}
       </Text>
     </div>
@@ -455,18 +457,18 @@ function InviteCommunityBlock({ teachersInvitedCount, onInvite }) {
                 transition: "opacity 0.35s ease",
               }}
             />
-            <StarFilled style={{ color: "#FFFFFF", fontSize: 20, position: "relative", zIndex: 1 }} />
+            <StarFilled style={{ color: "#FFFFFF", fontSize: TYPO.heading4.fontSize, position: "relative", zIndex: 1 }} />
           </div>
         </div>
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: APP_COLORS.ink, lineHeight: 1.3, marginBottom: 4 }}>
+          <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: APP_COLORS.ink, marginBottom: 4 }}>
             Build your community
           </div>
-          <Text type="secondary" style={{ fontSize: 13, lineHeight: 1.5, display: "block" }}>
+          <Text type="secondary" style={{ ...typoStyle("base"), display: "block" }}>
             Invite at least 10 colleagues and get rewarded.
           </Text>
         </div>
-        <Button type="primary" onClick={onInvite} style={{ borderRadius: 8, fontWeight: 400, flexShrink: 0 }}>
+        <Button type="primary" icon={<GiftOutlined />} onClick={onInvite} style={{ borderRadius: 8, fontWeight: 400, flexShrink: 0 }}>
           Invite
         </Button>
       </div>
@@ -746,7 +748,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
   return (
     <div style={{ maxWidth: 1160, margin: "0 auto" }}>
       <div style={{ marginBottom: 28 }}>
-        <Title level={2} style={{ margin: 0, fontSize: 22, color: APP_COLORS.ink }}>
+        <Title level={2} style={{ margin: 0, ...typoStyle("heading3"), color: APP_COLORS.ink }}>
           Teachers Room
         </Title>
       </div>
@@ -765,7 +767,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
             ),
             children: (
               <>
-                <Text type="secondary" style={{ fontSize: 13, margin: "0 0 12px", display: "block" }}>
+                <Text type="secondary" style={{ ...typoStyle("base"), margin: "0 0 12px", display: "block" }}>
                   Questions, ideas, and updates from colleagues at your school.
                 </Text>
                 <div
@@ -836,14 +838,14 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                         },
                       }}
                     >
-                      <Button type="text" icon={<MoreOutlined style={{ fontSize: 18 }} />} aria-label="Post actions" style={{ flexShrink: 0, color: APP_COLORS.muted }} />
+                      <Button type="text" icon={<MoreOutlined style={{ fontSize: TYPO.heading4.fontSize }} />} aria-label="Post actions" style={{ flexShrink: 0, color: APP_COLORS.muted }} />
                     </Dropdown>
                   ) : null}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: APP_COLORS.ink, marginTop: 12, marginBottom: 8 }}>{post.title}</div>
+                <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: APP_COLORS.ink, marginTop: 12, marginBottom: 8 }}>{post.title}</div>
                 {!showFullBody ? (
                   <>
-                    <div style={{ fontSize: 14, color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
                       {post.body.slice(0, POST_BODY_PREVIEW_CHARS)}…
                     </div>
                     <Button
@@ -856,7 +858,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 14, color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                       {linkifyCommentText(post.body)}
                     </div>
                     {isLongBody ? (
@@ -929,7 +931,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
 
                 {commentsOpen ? (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${APP_COLORS.border}` }}>
-                    <Text strong style={{ fontSize: 13 }}>
+                    <Text strong style={{ ...typoStyle("base") }}>
                       Comments
                     </Text>
                     <Space direction="vertical" size={10} style={{ width: "100%", marginTop: 12 }}>
@@ -1058,22 +1060,22 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                                     <Button
                                       type="text"
                                       size="small"
-                                      icon={<MoreOutlined style={{ fontSize: 16 }} />}
+                                      icon={<MoreOutlined style={{ fontSize: TYPO.large.fontSize }} />}
                                       aria-label="Comment actions"
                                       style={{ flexShrink: 0, color: APP_COLORS.muted, marginTop: -2 }}
                                     />
                                   </Dropdown>
                                 ) : null}
                               </div>
-                              <Text type="secondary" style={{ fontSize: 11, display: "block", marginBottom: 6 }}>
+                              <Text type="secondary" style={{ ...typoStyle("small"), display: "block", marginBottom: 6 }}>
                                 {dayjs(c.createdAt).format("MMM D, YYYY HH:mm")}
                                 {c.updatedAt ? " · edited" : ""}
                               </Text>
-                              <div style={{ fontSize: 13, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{linkifyCommentText(c.body)}</div>
+                              <div style={{ ...typoStyle("base"), whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{linkifyCommentText(c.body)}</div>
                               {c.imageUrl ? <img src={c.imageUrl} alt="" style={{ ...FORUM_ATTACHMENT_IMAGE_STYLE, marginTop: 8, borderRadius: 6 }} /> : null}
                               {c.linkUrl ? (
                                 <div style={{ marginTop: 6 }}>
-                                  <Link href={c.linkUrl} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+                                  <Link href={c.linkUrl} target="_blank" rel="noreferrer" style={{ ...typoStyle("base") }}>
                                     {c.linkUrl}
                                   </Link>
                                 </div>
@@ -1242,11 +1244,11 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                                 marginBottom: 4,
                               }}
                             >
-                              <Text strong style={{ fontSize: 15, color: APP_COLORS.ink, lineHeight: 1.3 }}>
+                              <Text strong style={{ ...typoStyle("large"), color: APP_COLORS.ink, lineHeight: 1.3 }}>
                                 {s.fullName}
                               </Text>
                             </div>
-                            <div style={{ fontSize: 12, color: APP_COLORS.muted, marginBottom: 8 }}>
+                            <div style={{ ...typoStyle("small"), color: APP_COLORS.muted, marginBottom: 8 }}>
                               {s.subjects.join(" · ")}
                             </div>
                             <Tag
@@ -1271,31 +1273,59 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
         ]}
       />
 
-      <Modal title="Invite a colleague" open={inviteOpen} onCancel={() => setInviteOpen(false)} footer={null} width={520}>
-        <p style={{ fontSize: 13, color: APP_COLORS.muted, marginTop: 0 }}>
-          Share this link with teachers you want to join Koreez at your school.{" "}
-          <strong>TODO:</strong> replace with a signed invite from your backend.
+      <Modal
+        title="Invite a colleague"
+        open={inviteOpen}
+        onCancel={() => setInviteOpen(false)}
+        width={520}
+        footer={[
+          <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={() => copyTextToClipboard(inviteUrl)}>
+            Copy link
+          </Button>,
+          <Button key="close" onClick={() => setInviteOpen(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+        <p style={{ ...typoStyle("base"), color: APP_COLORS.muted, marginTop: 0 }}>
+          Share this link with teachers you want to join Koreez at your school.
         </p>
         <div
           style={{
-            fontSize: 12,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 16,
+            padding: 12,
+            background: APP_COLORS.card,
+            borderRadius: 8,
+            border: `1px solid ${APP_COLORS.border}`,
+          }}
+        >
+          <span style={{ ...typoStrong("small"), color: APP_COLORS.text }}>Scan to open</span>
+          <img
+            src="/assets/images/qr-code.png"
+            alt="QR code for the colleague invite link"
+            width={200}
+            height={200}
+            style={{ width: 200, height: "auto", display: "block", borderRadius: 6 }}
+          />
+        </div>
+        <div
+          style={{
+            ...typoStyle("small"),
             wordBreak: "break-all",
             fontFamily: "ui-monospace, monospace",
             padding: 12,
             background: APP_COLORS.bg,
             borderRadius: 8,
             border: `1px solid ${APP_COLORS.border}`,
-            marginBottom: 12,
+            marginBottom: 0,
           }}
         >
           {inviteUrl}
         </div>
-        <Space>
-          <Button type="primary" icon={<CopyOutlined />} onClick={() => copyTextToClipboard(inviteUrl)}>
-            Copy link
-          </Button>
-          <Button onClick={() => setInviteOpen(false)}>Close</Button>
-        </Space>
       </Modal>
 
       <Modal

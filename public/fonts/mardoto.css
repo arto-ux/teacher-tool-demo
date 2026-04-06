@@ -1,0 +1,100 @@
+/* Mardoto — self-hosted woff2 (SIL OFL). Paths are root-relative for Vite public/. */
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Thin.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-ThinItalic.woff2") format("woff2");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-LightItalic.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-MediumItalic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+/* UI uses font-weight 600 often — map to Medium */
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Medium.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-MediumItalic.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mardoto";
+  src: url("/fonts/Mardoto-BlackItalic.woff2") format("woff2");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
