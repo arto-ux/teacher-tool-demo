@@ -590,7 +590,9 @@ export default function App() {
                 }}
               >
                 <span style={navIconStyle}>
-                  <Icon style={item.key === "home" ? { color: "rgb(26, 26, 46)" } : undefined} />
+                  <Icon
+                    style={item.key === "home" ? { color: active ? colors.blue : "rgb(26, 26, 46)" } : undefined}
+                  />
                 </span>
                 {item.label}
               </button>
