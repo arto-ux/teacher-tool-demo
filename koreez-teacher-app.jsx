@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import TeachersRoomPage from "./TeachersRoomPage.jsx";
 import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong, typoPageHeading } from "./typography-tokens.js";
-import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse, Card as AntdCard } from "antd";
+import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse } from "antd";
 import {
   HomeOutlined,
   HomeFilled,
@@ -26,6 +26,11 @@ import {
   CommentOutlined,
   PlusOutlined,
   SendOutlined,
+  DownloadOutlined,
+  CloseOutlined,
+  SafetyCertificateOutlined,
+  LineChartOutlined,
+  LockOutlined,
 } from "@ant-design/icons";
 
 const TEACHER_AVATAR_SRC = "/assets/images/Rectavatar_teacher.jpg";
@@ -34,12 +39,6 @@ function koreezLogoSrc() {
   const base = import.meta.env.BASE_URL ?? "/";
   const prefix = base.endsWith("/") ? base : `${base}/`;
   return `${prefix}assets/images/koreez_logo.svg`;
-}
-
-function discountPromoImageSrc() {
-  const base = import.meta.env.BASE_URL ?? "/";
-  const prefix = base.endsWith("/") ? base : `${base}/`;
-  return `${prefix}assets/images/discountbadge.png`;
 }
 
 function qrCodeImageSrc() {
@@ -80,11 +79,99 @@ const TEACHER = {
   weeklyTotal: 5,
   percentile: 82,
   /** Mock: successful teacher invites (Community builder at 10+). */
-  teachersInvitedCount: 6,
+  teachersInvitedCount: 16,
 };
+
+const TEACHER_PROGRESS_MOCK = {
+  consecutiveCertificationMonths: 6,
+  eligibleStudentsThisMonth: { bestStudent: 2, activeParticipation: 5, participation: 11, premiumEligible: 14 },
+  studentsByMedal: { free: 27, bronze: 6, silver: 6, gold: 4 },
+  monthlyAssignedTasks: 24,
+  weeklyAssignedTasks: 6,
+  invitesConvertedToPremium: TEACHER.teachersInvitedCount,
+  /** Free yearly activation slots used (0–3) after milestone; mock only. */
+  freeYearlySpotsUsed: 0,
+  /** Year-end spotlight (mock). Separate from weekly leaderboard score on Old Widget. */
+  teacherOfYearSeasonLabel: "2025–2026",
+  teacherOfYearPoints: 23_408,
+  teacherOfYearRankingLine: "Ranking in Top 10%",
+  /** 0–1 fill for bar + avatar marker */
+  teacherOfYearBarProgress: 0.88,
+};
+
+/** Shared copy: achievement rules drawer + detail modals + TOTY drawer */
+const PROGRESSION_RULES_TEACHER_MEDALS_PARAGRAPH = (
+  <>
+    You earn <strong>Bronze</strong> when at least <strong>5</strong> of your students hold a bronze medal, <strong>Silver</strong> at{" "}
+    <strong>10</strong> silver students, and <strong>Gold</strong> at <strong>20</strong> gold students.
+  </>
+);
+
+const PROGRESSION_RULES_AMBASSADOR_PARAGRAPH = (
+  <>
+    Unlocks when <strong>20 students</strong> have an active <strong>Premium</strong> subscription through <strong>your invitation</strong> (invite link or code attributed to you).
+  </>
+);
+
+const PROGRESSION_RULES_TEACHER_OF_YEAR_PARAGRAPH = (
+  <>
+    You don&apos;t need the <strong>gold teacher medal</strong> to appear on this leaderboard—your standing comes from <strong>achievement points</strong> when students complete assigned work. The <strong>top 10</strong> teachers are invited to the{" "}
+    <strong>Koreez Awards Ceremony</strong> to receive <strong>prizes and trophies on stage</strong>.
+  </>
+);
+
+/** Points per completed task by student category (Achievement rules drawer). */
+const PROGRESSION_RULES_TEACHER_POINTS_CONTENT = (
+  <>
+    <p style={{ margin: "0 0 10px" }}>
+      Each time a student completes an assigned task, you earn teacher points. The amount depends on that student&apos;s category:
+    </p>
+    <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.65 }}>
+      <li style={{ marginBottom: 6 }}>
+        <strong>2 points</strong> — Free students
+      </li>
+      <li style={{ marginBottom: 6 }}>
+        <strong>3 points</strong> — Students holding at least a Certificate of Participation
+      </li>
+      <li style={{ marginBottom: 6 }}>
+        <strong>5 points</strong> — Bronze student medalists
+      </li>
+      <li style={{ marginBottom: 6 }}>
+        <strong>7 points</strong> — Silver student medalists
+      </li>
+      <li style={{ marginBottom: 0 }}>
+        <strong>10 points</strong> — Gold student medalists
+      </li>
+    </ul>
+  </>
+);
+
+/** Short copy for the Teacher of the Year drawer only (rules drawer keeps full paragraphs). */
+const TEACHER_OF_YEAR_DRAWER_INTRO = (
+  <>
+    Keep your classes active and climb this year-end leaderboard—every bit of momentum counts. The <strong>top 10</strong> teachers are invited to the{" "}
+    <strong>Koreez Awards Ceremony</strong>, where you&apos;ll receive your <strong>prizes and trophies on stage</strong>.
+  </>
+);
 
 /** Shown on the My school leaderboard */
 const MY_SCHOOL_NAME = "Hayk Yeghazyan Educational Complex";
+
+/** Year-end achievement-points ranking (mock). Uses {@link MY_SCHOOL_NAME}. */
+const TEACHER_OF_YEAR_LEADERBOARD = [
+  { rank: 1, name: "Tigran Arakelyan", school: "Ayb School", points: 28_940 },
+  { rank: 2, name: "Nare Hakobyan", school: "Quantum College", points: 27_812 },
+  { rank: 3, name: "Anahit Baghdasaryan", school: "Yerevan Physics School", points: 26_105 },
+  { rank: 4, name: "Gor Mkrtchyan", school: "Mkhitar Sebastatsi Educomplex", points: 25_480 },
+  { rank: 5, name: "Lilit Karapetyan", school: "Pushkin Secondary School", points: 24_902 },
+  { rank: 6, name: "Arayik Sargsyan", school: "School #132", points: 24_110 },
+  { rank: 7, name: "Gayane Asatryan", school: MY_SCHOOL_NAME, points: 23_408, isYou: true },
+  { rank: 8, name: "Hasmik Ter-Hovakimyan", school: "Dilijan Central School", points: 22_891 },
+  { rank: 9, name: "Gohar Vardanyan", school: "Ayb School", points: 22_004 },
+  { rank: 10, name: "Karen Manukyan", school: "Tumo Labs Partner School", points: 21_550 },
+  { rank: 11, name: "Syuzanna Lusikyan", school: "Waldorf Yerevan", points: 20_980 },
+  { rank: 12, name: "Armen Avetisyan", school: "Khachatur Abovyan School", points: 20_100 },
+];
 
 /** Same school only — school-local ranks (Gayane is #3 here; global rank stays in TEACHER.rank). */
 const SCHOOL_LEADERBOARD_ROWS = [
@@ -286,6 +373,7 @@ function groupLeaderboardByTier(rows) {
 
 const NAV_ITEMS = [
   { key: "home", Icon: HomeOutlined, label: "Home" },
+  { key: "oldWidget", Icon: TrophyOutlined, label: "Old Widget" },
   { key: "students", Icon: TeamOutlined, label: "My Students" },
   { key: "teachersRoom", Icon: CommentOutlined, label: "Teachers Room" },
   { key: "assign", Icon: CheckSquareOutlined, label: "Assignments" },
@@ -305,6 +393,16 @@ const colors = {
   blue: "#2990FF", deepBlue: "#0076BA", lime: "#9AE600", red: "#EE220D",
   ink: "#1A1A2E", text: "#3D3D3D", muted: "#808080", lightGray: "#A7A7A7",
   bg: "#F5F7FA", border: "#E8ECF0", card: "#FFFFFF", green: "#2D8A4E",
+  /** Ant Design green-5 */
+  green5: "#52c41a",
+};
+
+/** Keys match achievement cards; artwork only — labels and stats come from the card via props. */
+const ACHIEVEMENT_MODAL_META = {
+  bronze: { tier: "bronze", visual: "medal" },
+  silver: { tier: "silver", visual: "medal" },
+  gold: { tier: "gold", visual: "medal" },
+  ambassador: { visual: "ambassador" },
 };
 
 /** Ant Table row rules (students roster): top borders instead of default cell bottom borders. */
@@ -325,7 +423,7 @@ const TIER_LADDER_LABEL_LINE_HEIGHT = 14;
 const TIER_LADDER_MARKER_OVERLAP_INTO_BAR = 8;
 
 const BREADCRUMB = {
-  home: "Home",
+  oldWidget: "Old Widget",
   board: "Become an Innovative Education Leader",
   students: "My Students",
   teachersRoom: "Teachers Room",
@@ -334,37 +432,76 @@ const BREADCRUMB = {
 const LEADERBOARD_ACADEMIC_LINE = "Academic Year 2025–2026 · Updated weekly";
 
 function AppBreadcrumb({ page, onGoHome }) {
+  const crumbHomeIconStyle = {
+    fontSize: TYPO.small.fontSize,
+    color: "rgb(61, 61, 61)",
+    flexShrink: 0,
+  };
+
   if (page === "home") {
     return (
-      <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", minHeight: 40 }}>
-        <span style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>{BREADCRUMB.home}</span>
+      <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", minHeight: 40, minWidth: 0 }}>
+        <span
+          aria-current="page"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            minWidth: 0,
+            ...typoStyle("base"),
+            fontWeight: 700,
+            color: colors.ink,
+          }}
+        >
+          <HomeFilled style={crumbHomeIconStyle} aria-hidden />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{MY_SCHOOL_NAME}</span>
+        </span>
       </nav>
     );
   }
 
   const segment =
-    page === "students" ? BREADCRUMB.students : page === "teachersRoom" ? BREADCRUMB.teachersRoom : BREADCRUMB.board;
+    page === "students"
+      ? BREADCRUMB.students
+      : page === "teachersRoom"
+        ? BREADCRUMB.teachersRoom
+        : page === "oldWidget"
+          ? BREADCRUMB.oldWidget
+          : BREADCRUMB.board;
 
   return (
-    <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0, minHeight: 40 }}>
+    <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0, minHeight: 40, minWidth: 0 }}>
       <button
         type="button"
         onClick={onGoHome}
+        aria-label="Home"
         style={{
           background: "none",
           border: "none",
           padding: 0,
           cursor: "pointer",
           fontFamily: "inherit",
-          ...typoStyle("base"),
-          fontWeight: 500,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           color: colors.muted,
         }}
       >
-        {BREADCRUMB.home}
+        <HomeFilled style={crumbHomeIconStyle} aria-hidden />
       </button>
       <span style={{ color: colors.lightGray, padding: "0 8px", ...typoStyle("base"), userSelect: "none" }} aria-hidden="true">/</span>
-      <span style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>{segment}</span>
+      <span
+        style={{
+          ...typoStyle("base"),
+          fontWeight: 700,
+          color: colors.ink,
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {segment}
+      </span>
     </nav>
   );
 }
@@ -377,12 +514,14 @@ export default function App() {
   const isPrimaryNavActive = (key) => {
     if (key === "students") return page === "students";
     if (key === "teachersRoom") return page === "teachersRoom";
+    if (key === "oldWidget") return page === "oldWidget";
     if (key === "home") return page === "home" || page === "board";
     return false;
   };
 
   const handlePrimaryNavClick = (key) => {
     if (key === "home") setPage("home");
+    else if (key === "oldWidget") setPage("oldWidget");
     else if (key === "students") setPage("students");
     else if (key === "teachersRoom") setPage("teachersRoom");
   };
@@ -392,7 +531,7 @@ export default function App() {
   };
 
   const mainContentNarrow =
-    page === "home" || page === "teachersRoom" || page === "students" || page === "board";
+    page === "home" || page === "teachersRoom" || page === "students" || page === "board" || page === "oldWidget";
 
   return (
     <ConfigProvider theme={{ token: getKoreezAntdFontTokens() }}>
@@ -570,9 +709,9 @@ export default function App() {
           }}
         >
           {page === "home" ? (
-            <HomePage
-              onOpenBoard={() => setPage("board")}
-            />
+            <HomePage />
+          ) : page === "oldWidget" ? (
+            <OldWidgetPage activeTab={activeTab} setActiveTab={setActiveTab} />
           ) : page === "students" ? (
             <StudentsPage />
           ) : page === "teachersRoom" ? (
@@ -710,7 +849,7 @@ function MyAchievementsWidget({
               onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; }}
             >
               <span>Leaderboard</span>
-              <RightOutlined style={{ fontSize: TYPO.base.fontSize }} aria-hidden />
+              <RightOutlined style={{ fontSize: TYPO.base.fontSize, lineHeight: TYPO.base.lineHeight }} aria-hidden />
             </button>
           ) : null}
         </div>
@@ -754,20 +893,7 @@ function MyAchievementsWidget({
 function HomePage({ onOpenBoard }) {
   return (
     <>
-      <div
-        style={{
-          marginBottom: 12,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          ...typoStyle("base"),
-          color: colors.text,
-        }}
-      >
-        <HomeFilled style={{ fontSize: TYPO.small.fontSize, color: "rgb(61, 61, 61)", flexShrink: 0 }} aria-hidden />
-        {MY_SCHOOL_NAME}
-      </div>
-      <MyAchievementsWidget onOpenBoard={onOpenBoard} />
+      <TeacherProgressWidget />
 
       {/* CLASSES */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -810,6 +936,603 @@ function HomePage({ onOpenBoard }) {
             </div>
           </div>
         ))}
+      </div>
+    </>
+  );
+}
+
+function achievementCardActivateKeyDown(handler) {
+  return (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handler();
+    }
+  };
+}
+
+/** Single body paragraph for {@link AchievementDetailModal}. */
+function buildAchievementModalDescription(kind, f) {
+  if (!kind) return null;
+  const {
+    bronzeDone,
+    silverDone,
+    goldDone,
+    ambassadorDone,
+    bronzeNeed,
+    silverNeed,
+    goldNeed,
+    ambassadorNeed,
+  } = f;
+
+  switch (kind) {
+    case "bronze":
+      return bronzeDone ? (
+        <>
+          You earned this teacher medal because at least <strong>{bronzeNeed}</strong> of your students hold{" "}
+          <strong>bronze student medals</strong>. Students earn those medals after <strong>2 consecutive months</strong> as top performers in your class.
+        </>
+      ) : (
+        <>
+          You&apos;ll earn this teacher medal when at least <strong>{bronzeNeed}</strong> of your students hold a{" "}
+          <strong>bronze student medal</strong>. Students qualify after <strong>2 consecutive months</strong> as top performers.
+        </>
+      );
+    case "silver":
+      return silverDone ? (
+        <>
+          You earned this teacher medal because at least <strong>{silverNeed}</strong> of your students hold{" "}
+          <strong>silver student medals</strong>. Students earn those medals after <strong>4 consecutive months</strong> as top performers in your class.
+        </>
+      ) : (
+        <>
+          You&apos;ll earn this teacher medal when at least <strong>{silverNeed}</strong> of your students hold a{" "}
+          <strong>silver student medal</strong>. Students qualify after <strong>4 consecutive months</strong> as top performers.
+        </>
+      );
+    case "gold":
+      return goldDone ? (
+        <>
+          You earned this teacher medal because at least <strong>{goldNeed}</strong> of your students hold{" "}
+          <strong>gold student medals</strong>. Students earn those medals after <strong>6 consecutive months</strong> as top performers in your class.
+        </>
+      ) : (
+        <>
+          You&apos;ll earn this teacher medal when at least <strong>{goldNeed}</strong> of your students hold a{" "}
+          <strong>gold student medal</strong>. Students qualify after <strong>6 consecutive months</strong> as top performers.
+        </>
+      );
+    case "ambassador":
+      return ambassadorDone ? (
+        <>
+          You earned the <strong>Ambassador</strong> badge when <strong>{ambassadorNeed}</strong> new students activated{" "}
+          <strong>Premium</strong> using your invitation link or code.
+        </>
+      ) : (
+        <>
+          You&apos;ll earn the <strong>Ambassador</strong> badge when <strong>{ambassadorNeed}</strong> new students activate{" "}
+          <strong>Premium</strong> for the first time through your invitation—your personal link or code must be the one they use to subscribe.
+        </>
+      );
+    default:
+      return null;
+  }
+}
+
+function AchievementDetailModal({ open, onClose, kind, complete, cardTitle, description }) {
+  const meta = kind ? ACHIEVEMENT_MODAL_META[kind] : null;
+  if (!meta || !cardTitle) return null;
+
+  const onDownloadCertificate = () => {
+    message.success("Certificate download will be available when your account is linked to our certificate service.");
+  };
+
+  return (
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={440}
+      centered
+      title={null}
+      closable={false}
+      styles={{ content: { fontFamily: "inherit" }, header: { display: "none" } }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          width: "100%",
+          padding: "0 4px 8px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "flex-end", width: "100%", marginBottom: 4 }}>
+          <Button type="text" icon={<CloseOutlined />} aria-label="Close" onClick={onClose} style={{ color: colors.muted }} />
+        </div>
+        {meta.visual === "medal" ? (
+          <TierMedalImage tier={meta.tier} height={112} style={{ marginBottom: 10 }} />
+        ) : (
+          <img
+            src={tierMedalAssetUrl("ambassador.svg")}
+            alt=""
+            height={112}
+            style={{
+              height: 112,
+              width: "auto",
+              maxWidth: "100%",
+              objectFit: "contain",
+              display: "block",
+              marginBottom: 10,
+            }}
+          />
+        )}
+        <div style={{ ...typoStyle("heading4"), fontWeight: 700, color: colors.ink }}>{cardTitle}</div>
+        {description ? (
+          <p
+            style={{
+              ...typoStyle("small"),
+              color: colors.text,
+              marginTop: 10,
+              marginBottom: 0,
+              lineHeight: 1.6,
+              maxWidth: 360,
+              textAlign: "center",
+            }}
+          >
+            {description}
+          </p>
+        ) : null}
+        <Button
+          type="primary"
+          icon={<DownloadOutlined />}
+          disabled={!complete}
+          onClick={onDownloadCertificate}
+          block
+          style={{ marginTop: 16, fontWeight: 600, alignSelf: "stretch", maxWidth: "100%" }}
+        >
+          Download certificate
+        </Button>
+        {!complete ? (
+          <p style={{ ...typoStyle("small"), color: colors.muted, marginTop: 12, marginBottom: 0 }}>
+            Complete this milestone to unlock your certificate.
+          </p>
+        ) : (
+          <p style={{ ...typoStyle("small"), color: colors.muted, marginTop: 12, marginBottom: 0 }}>
+            Share with friends.
+          </p>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function TeacherOfTheYearPageDrawer({ open, onClose, progress }) {
+  const myTotyRowRef = useRef(null);
+
+  const scrollToMyTotyRow = () => {
+    myTotyRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const drawerStyles = {
+    content: { fontFamily: "inherit" },
+    header: {
+      fontFamily: "inherit",
+      borderBottom: `1px solid ${colors.border}`,
+      padding: "10px 20px",
+    },
+    body: {
+      fontFamily: "inherit",
+      padding: "8px 20px 28px",
+      background: colors.card,
+    },
+  };
+
+  return (
+    <Drawer
+      title={(
+        <span style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
+          Teacher of the Year ({progress.teacherOfYearSeasonLabel})
+        </span>
+      )}
+      placement="right"
+      width={560}
+      open={open}
+      onClose={onClose}
+      destroyOnClose
+      styles={drawerStyles}
+      maskStyle={{ background: "rgba(26, 26, 46, 0.45)" }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          gap: 16,
+          height: "fit-content",
+          background: colors.bg,
+          borderRadius: 12,
+          border: `1px solid ${colors.border}`,
+          padding: 16,
+          marginBottom: 20,
+        }}
+      >
+        <img
+          src={tierMedalAssetUrl("trophy.svg")}
+          alt=""
+          height={64}
+          style={{ height: 64, width: "auto", objectFit: "contain", flexShrink: 0, marginTop: 0 }}
+        />
+        <p
+          style={{
+            ...typoStyle("small"),
+            color: colors.text,
+            margin: 0,
+            textAlign: "left",
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {TEACHER_OF_YEAR_DRAWER_INTRO}
+        </p>
+      </div>
+
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            flexWrap: "wrap",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ ...typoStyle("large"), fontWeight: 700, color: colors.ink }}>Leaderboard</div>
+          <Button
+            type="default"
+            size="small"
+            icon={<ArrowDownOutlined aria-hidden />}
+            onClick={scrollToMyTotyRow}
+            aria-label="Scroll to my position in the leaderboard"
+            style={{ fontWeight: 600, flexShrink: 0 }}
+          >
+            My position
+          </Button>
+        </div>
+        <div>
+          {TEACHER_OF_YEAR_LEADERBOARD.map((p) => (
+            <LeaderboardRow
+              key={p.rank}
+              rank={p.rank}
+              name={p.name}
+              school={p.school}
+              score={p.points.toLocaleString()}
+              tier="gold"
+              isYou={p.isYou}
+              avatarSrc={leaderboardAvatarSrc(p.rank, p.isYou)}
+              rowRef={p.isYou ? myTotyRowRef : undefined}
+            />
+          ))}
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
+function TeacherProgressWidget() {
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [achievementModalKind, setAchievementModalKind] = useState(null);
+  const [totyDrawerOpen, setTotyDrawerOpen] = useState(false);
+  const progress = TEACHER_PROGRESS_MOCK;
+  const bronzeNeed = 5;
+  const silverNeed = 10;
+  const goldNeed = 20;
+  const ambassadorNeed = 20;
+  const nBronze = progress.studentsByMedal.bronze;
+  const nSilver = progress.studentsByMedal.silver;
+  const nGold = progress.studentsByMedal.gold;
+  const nAmbassador = progress.invitesConvertedToPremium;
+  const bronzeDone = nBronze >= bronzeNeed;
+  const silverDone = nSilver >= silverNeed;
+  const goldDone = nGold >= goldNeed;
+  const ambassadorDone = nAmbassador >= ambassadorNeed;
+  const medalOpacity = (done) => (done ? 1 : 0.3);
+  const totyBar = Math.max(0, Math.min(1, progress.teacherOfYearBarProgress ?? 0));
+
+  const achievementCardShell = {
+    background: colors.card,
+    borderRadius: 8,
+    border: `1px solid ${colors.border}`,
+    boxShadow: "0 2px 10px rgba(26, 26, 46, 0.06)",
+    padding: "24px 16px 16px",
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  };
+
+  const achievementModalDescription = buildAchievementModalDescription(achievementModalKind, {
+    bronzeDone,
+    silverDone,
+    goldDone,
+    ambassadorDone,
+    bronzeNeed,
+    silverNeed,
+    goldNeed,
+    ambassadorNeed,
+  });
+
+  return (
+    <div style={{ marginBottom: 40 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 16,
+          marginBottom: 12,
+          minWidth: 0,
+        }}
+      >
+        <div className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: 0, minWidth: 0 }}>
+          My Achievements
+        </div>
+        <Button
+          type="default"
+          icon={<ExclamationCircleOutlined style={{ color: colors.blue }} aria-hidden />}
+          onClick={() => setRulesOpen(true)}
+          style={{ flexShrink: 0, fontWeight: 600 }}
+        >
+          Rules
+        </Button>
+      </div>
+
+      <Drawer
+        title={(
+          <span style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
+            Achievement rules
+          </span>
+        )}
+        placement="right"
+        width={560}
+        open={rulesOpen}
+        onClose={() => setRulesOpen(false)}
+        destroyOnClose
+        styles={{
+          content: { fontFamily: "inherit" },
+          header: {
+            fontFamily: "inherit",
+            borderBottom: `1px solid ${colors.border}`,
+            padding: "14px 20px",
+          },
+          body: {
+            fontFamily: "inherit",
+            padding: "16px 20px 28px",
+            background: colors.card,
+          },
+        }}
+        maskStyle={{ background: "rgba(26, 26, 46, 0.45)" }}
+      >
+        <ProgressionRulesDrawerContent />
+      </Drawer>
+
+      <AchievementDetailModal
+        open={achievementModalKind != null}
+        onClose={() => setAchievementModalKind(null)}
+        kind={achievementModalKind}
+        cardTitle={
+          achievementModalKind === "bronze"
+            ? "Bronze Medal"
+            : achievementModalKind === "silver"
+              ? "Silver Medal"
+              : achievementModalKind === "gold"
+                ? "Gold Medal"
+                : achievementModalKind === "ambassador"
+                  ? "Ambassador"
+                  : ""
+        }
+        complete={
+          achievementModalKind === "bronze"
+            ? bronzeDone
+            : achievementModalKind === "silver"
+              ? silverDone
+              : achievementModalKind === "gold"
+                ? goldDone
+                : achievementModalKind === "ambassador"
+                  ? ambassadorDone
+                  : false
+        }
+        description={achievementModalDescription}
+      />
+
+      <TeacherOfTheYearPageDrawer open={totyDrawerOpen} onClose={() => setTotyDrawerOpen(false)} progress={progress} />
+
+      <div
+        style={{
+          background: colors.bg,
+          borderRadius: 12,
+          border: `1px solid ${colors.border}`,
+          padding: "12px 12px",
+        }}
+      >
+        <div className="teacher-achievements-grid">
+        {/* Row 1 mobile: bronze, silver */}
+        <div
+          style={{ ...achievementCardShell, cursor: "pointer" }}
+          role="button"
+          tabIndex={0}
+          onClick={() => setAchievementModalKind("bronze")}
+          onKeyDown={achievementCardActivateKeyDown(() => setAchievementModalKind("bronze"))}
+        >
+          <TierMedalImage tier="bronze" height={60} style={{ marginBottom: 10, opacity: medalOpacity(bronzeDone) }} />
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>Bronze Medal</div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {nBronze}/{bronzeNeed} Bronze medalists
+          </div>
+          <AchievementProgressFooter complete={bronzeDone} fillRatio={nBronze / bronzeNeed} fillColor="#32D9A1" />
+        </div>
+
+        <div
+          style={{ ...achievementCardShell, cursor: "pointer" }}
+          role="button"
+          tabIndex={0}
+          onClick={() => setAchievementModalKind("silver")}
+          onKeyDown={achievementCardActivateKeyDown(() => setAchievementModalKind("silver"))}
+        >
+          <TierMedalImage tier="silver" height={60} style={{ marginBottom: 10, opacity: medalOpacity(silverDone) }} />
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>Silver Medal</div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {nSilver}/{silverNeed} Silver medalists
+          </div>
+          <AchievementProgressFooter complete={silverDone} fillRatio={nSilver / silverNeed} fillColor="#32D9A1" />
+        </div>
+
+        {/* Row 2 mobile: gold, ambassador */}
+        <div
+          style={{ ...achievementCardShell, cursor: "pointer" }}
+          role="button"
+          tabIndex={0}
+          onClick={() => setAchievementModalKind("gold")}
+          onKeyDown={achievementCardActivateKeyDown(() => setAchievementModalKind("gold"))}
+        >
+          <TierMedalImage tier="gold" height={60} style={{ marginBottom: 10, opacity: medalOpacity(goldDone) }} />
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>Gold Medal</div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {nGold}/{goldNeed} Gold medalists
+          </div>
+          <AchievementProgressFooter complete={goldDone} fillRatio={nGold / goldNeed} fillColor="#32D9A1" />
+        </div>
+
+        <div
+          style={{ ...achievementCardShell, cursor: "pointer" }}
+          role="button"
+          tabIndex={0}
+          onClick={() => setAchievementModalKind("ambassador")}
+          onKeyDown={achievementCardActivateKeyDown(() => setAchievementModalKind("ambassador"))}
+        >
+          <img
+            src={tierMedalAssetUrl("ambassador.svg")}
+            alt=""
+            height={60}
+            style={{
+              height: 60,
+              width: "auto",
+              objectFit: "contain",
+              marginBottom: 10,
+              display: "block",
+              opacity: medalOpacity(ambassadorDone),
+            }}
+          />
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>Ambassador</div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {nAmbassador}/{ambassadorNeed} Invites
+          </div>
+          <AchievementProgressFooter complete={ambassadorDone} fillRatio={nAmbassador / ambassadorNeed} fillColor="#32D9A1" />
+        </div>
+
+        {/* Row 3 mobile: full width — same vertical stack as other cards */}
+        <div
+          className="teacher-achievements-toty"
+          style={{ ...achievementCardShell, cursor: "pointer" }}
+          role="button"
+          tabIndex={0}
+          onClick={() => setTotyDrawerOpen(true)}
+          onKeyDown={achievementCardActivateKeyDown(() => setTotyDrawerOpen(true))}
+        >
+          <img
+            src={tierMedalAssetUrl("trophy.svg")}
+            alt=""
+            height={60}
+            style={{ height: 60, width: "auto", objectFit: "contain", marginBottom: 10, display: "block" }}
+          />
+          <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>
+            Teacher of the Year ({progress.teacherOfYearSeasonLabel})
+          </div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {(progress.teacherOfYearPoints ?? 0).toLocaleString()} points · {progress.teacherOfYearRankingLine}
+          </div>
+          <div
+            style={{
+              paddingTop: 16,
+              width: "100%",
+              position: "relative",
+              height: 20,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: "50%",
+                marginTop: -2,
+                height: 4,
+                borderRadius: 2,
+                background: "#E8ECF0",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${totyBar * 100}%`,
+                  borderRadius: 2,
+                  background: "#FECD45",
+                  transition: "width 0.25s ease",
+                }}
+              />
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                left: `${totyBar * 100}%`,
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                border: "2px solid white",
+                overflow: "hidden",
+                background: colors.border,
+                zIndex: 1,
+              }}
+            >
+              <TeacherAvatar size={24} alt="" style={{ borderRadius: "50%" }} />
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OldWidgetPage({ activeTab, setActiveTab }) {
+  const boardSectionRef = useRef(null);
+  const openLegacyLeaderboard = () => {
+    setActiveTab("allLeaders");
+    boardSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ textAlign: "left", minWidth: 0 }}>
+          <h1 className="koreez-page-heading" style={{ margin: 0, ...typoPageHeading(), color: colors.ink }}>
+            Old Widget
+          </h1>
+          <div style={{ ...typoStyle("base"), color: colors.muted, marginTop: 6 }}>
+            Legacy tier/rank experience retained for reference.
+          </div>
+        </div>
+      </div>
+      <MyAchievementsWidget onOpenBoard={openLegacyLeaderboard} />
+      <div ref={boardSectionRef}>
+        <BoardPage activeTab={activeTab} setActiveTab={setActiveTab} fullWidth />
       </div>
     </>
   );
@@ -878,7 +1601,7 @@ function BoardPage({ activeTab, setActiveTab, fullWidth }) {
           </span>
         )}
         placement="right"
-        width={448}
+        width={560}
         open={rulesDrawerOpen}
         onClose={() => setRulesDrawerOpen(false)}
         destroyOnClose
@@ -967,6 +1690,52 @@ const STUDENT_PREMIUM_BENEFITS_ITEMS = [
   "Get early access to new learning features",
 ];
 
+/** List prices in the student app (USD). Teacher invite link applies TEACHER_YEARLY_DISCOUNT_FRACTION to yearly only. */
+const STUDENT_PREMIUM_PRICE_YEARLY = 25.99;
+const TEACHER_YEARLY_DISCOUNT_FRACTION = 0.5;
+const TEACHER_DISCOUNT_BADGE_PCT = 78;
+
+function formatStudentPriceUsd(amount) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+const studentPremiumWithTeacherLinkYearly =
+  STUDENT_PREMIUM_PRICE_YEARLY * (1 - TEACHER_YEARLY_DISCOUNT_FRACTION);
+const studentPremiumWithTeacherLinkMonthlyEffective = studentPremiumWithTeacherLinkYearly / 12;
+const studentPremiumYearlyEffectiveMonthly = STUDENT_PREMIUM_PRICE_YEARLY / 12;
+
+const STUDENT_PRICE_YEARLY_STR = formatStudentPriceUsd(STUDENT_PREMIUM_PRICE_YEARLY);
+const STUDENT_PRICE_TEACHER_YEAR_STR = formatStudentPriceUsd(studentPremiumWithTeacherLinkYearly);
+const STUDENT_PRICE_TEACHER_PER_MO_STR = formatStudentPriceUsd(studentPremiumWithTeacherLinkMonthlyEffective);
+const STUDENT_PRICE_YEARLY_PER_MO_STR = formatStudentPriceUsd(studentPremiumYearlyEffectiveMonthly);
+
+const CLASS_ACCESS_DESCRIPTION =
+  "Share Class Access so students can subscribe to Koreez Premium yearly with a 78% discount.";
+
+const FREE_YEARLY_SPOTS_THRESHOLD = 20;
+const FREE_YEARLY_SPOTS_COUNT = 3;
+
+/** Class Access section — single white card (achievement-style shell). */
+const classAccessCardShell = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: colors.card,
+  borderRadius: 8,
+  border: `1px solid ${colors.border}`,
+  boxShadow: "none",
+  padding: "16px 16px 16px",
+  minWidth: 0,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  textAlign: "left",
+};
+
 function StudentDiscountInviteModalContent({ hint, url, qrAlt }) {
   return (
     <>
@@ -1008,6 +1777,121 @@ function StudentDiscountInviteModalContent({ hint, url, qrAlt }) {
         {url}
       </div>
     </>
+  );
+}
+
+function FreeYearlySpotsBand({ current, threshold, spotsTotal, spotsUsed = 0 }) {
+  const unlocked = current >= threshold;
+  const fillRatio = Math.max(0, Math.min(1, current / threshold));
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        marginTop: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24, width: "100%", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, flex: "0 0 auto", alignItems: "flex-start" }}>
+          {Array.from({ length: spotsTotal }, (_, i) => {
+          const used = unlocked && i < spotsUsed;
+          const locked = !unlocked;
+          const circleBorder = locked
+            ? `2px dashed ${colors.border}`
+            : used
+              ? `2px dashed ${colors.lightGray}`
+              : `2px dashed ${colors.green5}`;
+          const circleBg = locked ? colors.bg : used ? colors.bg : "rgba(82, 196, 26, 0.06)";
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8,
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  minWidth: 56,
+                  boxSizing: "border-box",
+                  borderRadius: "50%",
+                  border: circleBorder,
+                  background: circleBg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {locked ? (
+                  <LockOutlined style={{ fontSize: 20, color: colors.lightGray }} aria-hidden />
+                ) : used ? (
+                  <CheckOutlined style={{ fontSize: 20, color: colors.muted }} aria-hidden />
+                ) : (
+                  <GiftOutlined style={{ fontSize: 20, color: colors.green5 }} aria-hidden />
+                )}
+              </div>
+              {!locked ? (
+                <span
+                  style={{
+                    ...typoStyle("small"),
+                    color: used ? colors.muted : colors.ink,
+                    fontWeight: 600,
+                  }}
+                >
+                  {used ? "Used" : "Available"}
+                </span>
+              ) : null}
+            </div>
+          );
+          })}
+        </div>
+
+        <div style={{ flex: "0 0 280px", minWidth: 280 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 14, lineHeight: "22px", color: colors.text, fontWeight: 600 }}>
+              Unlock Free Spots
+            </span>
+            {unlocked ? (
+              <span
+                style={{
+                  ...typoStyle("small"),
+                  fontWeight: 600,
+                  color: colors.green5,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <CheckOutlined aria-hidden />
+                Unlocked
+              </span>
+            ) : null}
+          </div>
+          <div style={{ width: "100%" }}>
+            <div style={{ height: 4, borderRadius: 2, background: colors.border, overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${fillRatio * 100}%`,
+                  borderRadius: 2,
+                  background: "#32D9A1",
+                  transition: "width 0.25s ease",
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ ...typoStyle("small"), color: colors.muted, marginTop: 4 }}>
+            {current}/{threshold} students joined premium via your invite
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1115,6 +1999,12 @@ function StudentsPage() {
               menu={{
                 items: [
                   { key: "profile", label: "View Profile", icon: <UserOutlined /> },
+                  {
+                    key: "activateFree",
+                    label: "Activate for free",
+                    icon: <GiftOutlined />,
+                    disabled: true,
+                  },
                   ...(row.isPremium
                     ? []
                     : [{ key: "sendDiscount", label: "Send class discount", icon: <SendOutlined /> }]),
@@ -1173,71 +2063,61 @@ function StudentsPage() {
 
   return (
     <>
-      <div
-        style={{
-          marginBottom: 40,
-          height: "fit-content",
-        }}
-      >
+      <div style={{ marginBottom: 40 }}>
         <h1 className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: "0 0 16px" }}>
-          My Students
+          Class Access
         </h1>
-        <AntdCard
-          bordered={false}
-          style={{
-            width: "100%",
-            borderRadius: 12,
-            backgroundColor: "rgba(230, 247, 255, 1)",
-            boxShadow: "none",
-          }}
-          styles={{ body: { padding: 20, width: "100%" } }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 20,
-              alignItems: "flex-start",
-              flexWrap: "nowrap",
-              justifyContent: "center",
-              height: "fit-content",
-            }}
-          >
-            <img
-              src={discountPromoImageSrc()}
-              alt=""
-              width={120}
-              height={120}
-              style={{ width: 120, height: "100%", objectFit: "contain", flexShrink: 0, borderRadius: 0 }}
-            />
-            <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-              <div
+        <div style={classAccessCardShell}>
+          <div style={{ width: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: 20, lineHeight: "28px", fontWeight: 700, color: colors.ink }}>
+                {STUDENT_PRICE_TEACHER_YEAR_STR}
+                <span style={{ ...typoStyle("base"), fontWeight: 600 }}>/yr</span>
+              </span>
+              <Tag
                 style={{
-                  ...typoStyle("heading5"),
-                  fontWeight: 700,
+                  margin: 0,
+                  background: colors.lime,
                   color: colors.ink,
-                  margin: "0 0 4px 0",
+                  border: "none",
+                  fontWeight: 700,
+                  lineHeight: "22px",
                 }}
               >
-                Class access discount
-              </div>
-              <p
-                style={{
-                  ...typoStyle("base"),
-                  color: "rgba(0, 0, 0, 0.88)",
-                  margin: "0 0 16px 0",
-                }}
-              >
-                Share your teacher discount (50% off) on the <strong>yearly</strong> Premium plan only.
-              </p>
-              <Space wrap>
-                <Button type="primary" icon={<GiftOutlined />} onClick={openBulkLinkModal}>
-                  Invite
-                </Button>
-                <Button onClick={() => setPremiumBenefitsDrawerOpen(true)}>Learn more</Button>
-              </Space>
+                -{TEACHER_DISCOUNT_BADGE_PCT}%
+              </Tag>
             </div>
+            <div style={{ ...typoStyle("small"), color: colors.muted, marginBottom: 0 }}>
+              <span style={{ textDecoration: "line-through" }}>{STUDENT_PRICE_YEARLY_PER_MO_STR}/mo</span>{" "}
+              {STUDENT_PRICE_TEACHER_PER_MO_STR}/mo
+            </div>
+            <p style={{ ...typoStyle("base"), color: colors.text, margin: "14px 0 0", lineHeight: 1.55 }}>
+              {CLASS_ACCESS_DESCRIPTION}
+            </p>
+            <Space wrap size={10} style={{ marginTop: 12 }}>
+              <Button type="primary" icon={<GiftOutlined />} onClick={openBulkLinkModal}>
+                Share class access
+              </Button>
+                <Button onClick={() => setPremiumBenefitsDrawerOpen(true)}>What students will get</Button>
+            </Space>
           </div>
-        </AntdCard>
+        </div>
+        <div style={{ marginTop: 24 }}>
+          <FreeYearlySpotsBand
+            current={TEACHER_PROGRESS_MOCK.invitesConvertedToPremium}
+            threshold={FREE_YEARLY_SPOTS_THRESHOLD}
+            spotsTotal={FREE_YEARLY_SPOTS_COUNT}
+            spotsUsed={TEACHER_PROGRESS_MOCK.freeYearlySpotsUsed ?? 0}
+          />
+        </div>
       </div>
 
       <Drawer
@@ -1248,7 +2128,7 @@ function StudentsPage() {
           </span>
         )}
         placement="right"
-        width={448}
+        width={560}
         open={premiumBenefitsDrawerOpen}
         onClose={() => setPremiumBenefitsDrawerOpen(false)}
         destroyOnClose
@@ -1269,6 +2149,10 @@ function StudentsPage() {
       >
         <StudentPremiumBenefitsDrawerContent />
       </Drawer>
+
+      <h1 className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: "0 0 16px" }}>
+        My Students
+      </h1>
 
       {CLASSES.length === 0 ? (
         <div style={{ ...typoStyle("base"), color: colors.muted, padding: "24px 0" }}>
@@ -1426,7 +2310,7 @@ function StudentsPage() {
         ]}
       >
         {profileFor ? (
-          <div style={{ ...typoStyle("base"), color: colors.text, lineHeight: 1.6 }}>
+          <div style={{ ...typoStyle("base"), color: colors.text }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
               <Avatar src={studentAvatarSrc(profileFor.id)} size={64} alt="" />
               <div>
@@ -1552,7 +2436,7 @@ function LeaderboardScoreTab({
 
 function StudentPremiumBenefitsDrawerContent() {
   return (
-    <div style={{ ...typoStyle("base"), color: colors.text, lineHeight: 1.6 }}>
+    <div style={{ ...typoStyle("base"), color: colors.text }}>
       <p style={{ margin: "0 0 16px", color: colors.ink }}>{STUDENT_PREMIUM_BENEFITS_INTRO}</p>
       <ul style={{ margin: 0, paddingLeft: 20 }}>
         {STUDENT_PREMIUM_BENEFITS_ITEMS.map((item) => (
@@ -1629,8 +2513,8 @@ function RulesDrawerContent() {
 
         {/* Rules */}
         {rules.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < rules.length - 1 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text, lineHeight: 1.5 }}>
-            <span style={{ flexShrink: 0, width: 22, textAlign: "center", fontSize: TYPO.base.fontSize }}>{r.icon}</span>
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < rules.length - 1 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text }}>
+            <span style={{ flexShrink: 0, width: 22, textAlign: "center", ...TYPO.base }}>{r.icon}</span>
             <span>{r.text}</span>
           </div>
         ))}
@@ -1646,7 +2530,7 @@ function RulesDrawerContent() {
           { tier: "silver", text: "Top 40%. Certificate of Achievement at year end." },
           { tier: "bronze", text: "Building your score. Certificate of Participation at year end." },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 2 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text, lineHeight: 1.5 }}>
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 2 ? `1px solid ${colors.border}` : "none", ...typoStyle("base"), color: colors.text }}>
             <span style={{ flexShrink: 0, width: 22, display: "flex", justifyContent: "center", alignItems: "center" }}>
               <TierMedalImage tier={item.tier} height={20} style={{ maxWidth: 22 }} />
             </span>
@@ -1655,6 +2539,130 @@ function RulesDrawerContent() {
         ))}
       </div>
     </>
+  );
+}
+
+/** Progression / milestones — Home widget only. Weekly tier scoring stays in {@link RulesDrawerContent} on Old Widget. */
+function ProgressionRulesDrawerSection({ title, visual, children, isLast }) {
+  const titleStyle = {
+    ...typoStyle("large"),
+    fontWeight: 700,
+    color: colors.ink,
+    marginBottom: 8,
+    lineHeight: 1.35,
+  };
+  const bodyStyle = { ...typoStyle("base"), color: colors.text, margin: 0, lineHeight: 1.6 };
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
+        marginBottom: isLast ? 0 : 20,
+      }}
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          width: 72,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          paddingTop: 2,
+        }}
+      >
+        {visual}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={titleStyle}>{title}</div>
+        <div style={bodyStyle}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ProgressionRulesDrawerContent() {
+  const rulesMedalVisual = (
+    <div style={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "nowrap" }}>
+      <TierMedalImage tier="bronze" height={26} style={{ display: "block" }} />
+      <TierMedalImage tier="silver" height={26} style={{ display: "block" }} />
+      <TierMedalImage tier="gold" height={26} style={{ display: "block" }} />
+    </div>
+  );
+
+  return (
+    <div style={{ fontFamily: "inherit" }}>
+      <ProgressionRulesDrawerSection title="Teacher medals" visual={rulesMedalVisual}>
+        {PROGRESSION_RULES_TEACHER_MEDALS_PARAGRAPH}
+      </ProgressionRulesDrawerSection>
+      <ProgressionRulesDrawerSection
+        title="Certificates"
+        visual={<SafetyCertificateOutlined style={{ fontSize: 26, color: colors.blue }} aria-hidden />}
+      >
+        Each certified month advances the reward cycle (certificate; at months 2, 4, and 6 also bronze, silver, or gold student medal grants). Eligible students are counted at month end.
+      </ProgressionRulesDrawerSection>
+      <ProgressionRulesDrawerSection
+        title="Ambassador"
+        visual={(
+          <img
+            src={tierMedalAssetUrl("ambassador.svg")}
+            alt=""
+            width={28}
+            height={28}
+            style={{ width: 28, height: 28, objectFit: "contain", display: "block" }}
+          />
+        )}
+      >
+        {PROGRESSION_RULES_AMBASSADOR_PARAGRAPH}
+      </ProgressionRulesDrawerSection>
+      <ProgressionRulesDrawerSection
+        title="Teacher of the Year"
+        visual={(
+          <img
+            src={tierMedalAssetUrl("trophy.svg")}
+            alt=""
+            width={28}
+            height={28}
+            style={{ width: 28, height: 28, objectFit: "contain", display: "block" }}
+          />
+        )}
+      >
+        {PROGRESSION_RULES_TEACHER_OF_YEAR_PARAGRAPH}
+      </ProgressionRulesDrawerSection>
+      <ProgressionRulesDrawerSection
+        title="Teacher points"
+        visual={<LineChartOutlined style={{ fontSize: 26, color: colors.blue }} aria-hidden />}
+      >
+        {PROGRESSION_RULES_TEACHER_POINTS_CONTENT}
+      </ProgressionRulesDrawerSection>
+      <ProgressionRulesDrawerSection
+        title="Tasks"
+        visual={<CheckSquareOutlined style={{ fontSize: 26, color: colors.blue }} aria-hidden />}
+        isLast
+      >
+        <>
+          Up to <strong>1 task per class per day</strong>. Assign at least <strong>5 tasks per week</strong>.
+        </>
+      </ProgressionRulesDrawerSection>
+    </div>
+  );
+}
+
+function AchievementProgressFooter({ complete, fillRatio, fillColor, trackColor = "#E8ECF0" }) {
+  if (complete) {
+    return (
+      <div style={{ paddingTop: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <CheckOutlined style={{ fontSize: 20, color: colors.green5 }} aria-label="Completed" />
+      </div>
+    );
+  }
+  const w = Math.max(0, Math.min(1, fillRatio));
+  return (
+    <div style={{ paddingTop: 16, width: "100%" }}>
+      <div style={{ height: 4, borderRadius: 2, background: trackColor, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${w * 100}%`, borderRadius: 2, background: fillColor, transition: "width 0.25s ease" }} />
+      </div>
+    </div>
   );
 }
 
@@ -1924,22 +2932,20 @@ function StatBlock({ label, value, labelStyle, gap: columnGap = 0 }) {
 }
 
 function LeaderboardRow({ rank, name, score, tier, isYou, rowRef, avatarSrc, school }) {
-  const t = TIER_CONFIG[tier];
   return (
     <div
       ref={rowRef}
       style={{
         display: "flex", alignItems: "center", padding: "10px 0", gap: 12,
-        borderBottom: `1px solid ${colors.border}`,
+        borderTop: `1px solid ${colors.border}`,
         ...(isYou
           ? {
-              border: "none",
-              borderImage: "none",
-              background: "unset",
               backgroundColor: "rgba(232, 240, 250, 1)",
               margin: "4px -12px",
               padding: "8px 12px",
               borderRadius: 8,
+              borderLeft: "none",
+              borderRight: "none",
               borderBottom: "none",
             }
           : {}),
@@ -1959,7 +2965,6 @@ function LeaderboardRow({ rank, name, score, tier, isYou, rowRef, avatarSrc, sch
           borderRadius: "50%",
           objectFit: "cover",
           flexShrink: 0,
-          border: `2px solid ${t.color}`,
           background: colors.bg,
         }}
       />

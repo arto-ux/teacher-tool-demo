@@ -241,7 +241,7 @@ function inviteStarTooltipTitle(count) {
   return (
     <div style={{ maxWidth: 260 }}>
       <div style={{ ...typoStyle("base"), fontWeight: 600, marginBottom: 6 }}>Community builder</div>
-      <div style={{ ...typoStyle("base"), lineHeight: 1.45 }}>
+      <div style={{ ...typoStyle("base") }}>
         This badge appears when a teacher has successfully invited <strong>{INVITE_BADGE_MIN} or more</strong> colleagues to join Koreez.
         This profile has <strong>{count}</strong> confirmed invites.
       </div>
@@ -322,7 +322,7 @@ function ForumAuthorRow({ authorId, authorName, currentTeacherId, liveTeachersIn
         <InviteStarMark count={count} hideOnProfile={false} badgeSize={starBadgeSize} />
       </div>
       <div style={{ minWidth: 0, flex: dateLine ? 1 : undefined }}>
-        <Text strong style={{ color: APP_COLORS.ink, ...typoStyle("base"), lineHeight: 1.35, display: "block" }}>
+        <Text strong style={{ color: APP_COLORS.ink, ...typoStyle("base"), display: "block" }}>
           {authorName}
         </Text>
         {dateLine ? (
@@ -845,7 +845,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                 <div style={{ ...typoStyle("heading5"), fontWeight: 700, color: APP_COLORS.ink, marginTop: 12, marginBottom: 8 }}>{post.title}</div>
                 {!showFullBody ? (
                   <>
-                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, whiteSpace: "pre-wrap" }}>
                       {post.body.slice(0, POST_BODY_PREVIEW_CHARS)}…
                     </div>
                     <Button
@@ -858,7 +858,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                   </>
                 ) : (
                   <>
-                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    <div style={{ ...typoStyle("base"), color: APP_COLORS.text, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                       {linkifyCommentText(post.body)}
                     </div>
                     {isLongBody ? (

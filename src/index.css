@@ -4,3 +4,21 @@
   line-height: 32px;
   font-weight: 700 !important;
 }
+
+/* Home — My Achievements: desktop = 4× narrow + 1× wide; small = 2+2+full-width TotY */
+.teacher-achievements-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr;
+  grid-auto-rows: auto;
+}
+
+@media (max-width: 900px) {
+  .teacher-achievements-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .teacher-achievements-grid .teacher-achievements-toty {
+    grid-column: 1 / -1;
+  }
+}
