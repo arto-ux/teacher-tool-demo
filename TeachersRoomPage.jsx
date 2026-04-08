@@ -5,7 +5,6 @@ import {
   Modal,
   Input,
   Card,
-  Tag,
   Space,
   Typography,
   Tooltip,
@@ -55,6 +54,11 @@ const TIER_STYLES = {
   gold: { color: "#C5960C", bg: "#FDF8E8", border: "#E8D48A", label: "Gold" },
   silver: { color: "#6B7B8D", bg: "#EDF1F5", border: "#C5CED6", label: "Silver" },
   bronze: { color: "#9A6B3A", bg: "#F9F2EB", border: "#D4B896", label: "Bronze" },
+};
+const TIER_MEDAL_FILE = {
+  gold: "gold-medal.svg",
+  silver: "bronze-medal.svg",
+  bronze: "bronze-medal-1.svg",
 };
 
 /** Detect http(s) and www. URLs in comment text for inline links. */
@@ -319,7 +323,7 @@ function ForumAuthorRow({ authorId, authorName, currentTeacherId, liveTeachersIn
             background: APP_COLORS.bg,
           }}
         />
-        <InviteStarMark count={count} hideOnProfile={false} badgeSize={starBadgeSize} />
+        <InviteStarMark count={count} hideOnProfile={authorId === currentTeacherId} badgeSize={starBadgeSize} />
       </div>
       <div style={{ minWidth: 0, flex: dateLine ? 1 : undefined }}>
         <Text strong style={{ color: APP_COLORS.ink, ...typoStyle("base"), display: "block" }}>
@@ -344,7 +348,7 @@ function InviteeAvatarStack({ teachersInvitedCount }) {
 
   return (
     <div
-      style={{ display: "flex", alignItems: "center", marginTop: 16, paddingTop: 16, borderTop: `1px solid ${APP_COLORS.border}`, flexWrap: "wrap", gap: "8px 0" }}
+      style={{ display: "flex", alignItems: "center", marginTop: 16, paddingTop: 16, borderTop: `1px solid ${APP_COLORS.border}`, flexWrap: "wrap", gap: 12 }}
       aria-label={label}
     >
       <div style={{ display: "flex", flexShrink: 0, alignItems: "center" }}>
@@ -366,7 +370,10 @@ function InviteeAvatarStack({ teachersInvitedCount }) {
           );
         })}
       </div>
-      <Text type="secondary" style={{ ...typoStyle("small"), marginLeft: 10, lineHeight: 1.4 }}>
+      <Text
+        type="secondary"
+        style={{ fontSize: 12, lineHeight: "20px", fontWeight: 400, color: "rgba(0,0,0,0.45)" }}
+      >
         {label}
       </Text>
     </div>
@@ -377,9 +384,10 @@ function InviteCommunityBlock({ teachersInvitedCount, onInvite }) {
   const goal = INVITE_BADGE_MIN;
   const progress = Math.min(teachersInvitedCount / goal, 1);
   const completed = teachersInvitedCount >= goal;
-  const ringSize = 64;
+  const ringSize = 56;
   const stroke = 4;
-  const r = 28;
+  const r = (ringSize - stroke) / 2;
+  const badgeInnerSize = 40;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference * (1 - progress);
   const fillOpacity = completed ? 1 : 0.3;
@@ -394,7 +402,7 @@ function InviteCommunityBlock({ teachersInvitedCount, onInvite }) {
         marginBottom: 24,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
         <div
           style={{
             position: "relative",
@@ -437,8 +445,8 @@ function InviteCommunityBlock({ teachersInvitedCount, onInvite }) {
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              width: 46,
-              height: 46,
+              width: badgeInnerSize,
+              height: badgeInnerSize,
               borderRadius: "50%",
               border: "1px solid #FFFFFF",
               boxSizing: "border-box",
@@ -465,7 +473,7 @@ function InviteCommunityBlock({ teachersInvitedCount, onInvite }) {
             Build your community
           </div>
           <Text type="secondary" style={{ ...typoStyle("base"), display: "block" }}>
-            Invite at least 10 colleagues and get rewarded.
+            Invite 10 colleagues to earn the "Community Builder" badge.
           </Text>
         </div>
         <Button type="primary" icon={<GiftOutlined />} onClick={onInvite} style={{ borderRadius: 8, fontWeight: 400, flexShrink: 0 }}>
@@ -747,7 +755,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
 
   return (
     <div style={{ maxWidth: 1160, margin: "0 auto" }}>
-      <div style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 16 }}>
         <h1 className="koreez-page-heading" style={{ margin: 0, ...typoPageHeading(), color: APP_COLORS.ink }}>
           Teachers Room
         </h1>
@@ -756,7 +764,8 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
       <InviteCommunityBlock teachersInvitedCount={teachersInvitedCount} onInvite={() => setInviteOpen(true)} />
 
       <Tabs
-        defaultActiveKey="forum"
+        defaultActiveKey="staff"
+        renderTabBar={() => null}
         items={[
           {
             key: "forum",
@@ -1215,24 +1224,13 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                         style={{ borderRadius: 12, border: `1px solid ${APP_COLORS.border}`, overflow: "visible" }}
                       >
                         <div style={{ display: "flex", gap: 14 }}>
-                          <div
-                            style={{
-                              position: "relative",
-                              width: 100,
-                              height: 100,
-                              flexShrink: 0,
-                              overflow: "visible",
-                            }}
-                          >
-                            <img
-                              src={staffAvatarSrc(s.rank, s.isYou)}
-                              alt=""
-                              width={100}
-                              height={100}
-                              style={{ borderRadius: 10, objectFit: "cover", display: "block" }}
-                            />
-                            <InviteStarMark count={s.teachersInvitedCount} hideOnProfile={s.isYou} />
-                          </div>
+                          <img
+                            src={staffAvatarSrc(s.rank, s.isYou)}
+                            alt=""
+                            width={80}
+                            height={80}
+                            style={{ borderRadius: 4, objectFit: "cover", display: "block", flexShrink: 0 }}
+                          />
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <div
                               style={{
@@ -1240,27 +1238,33 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
                                 alignItems: "flex-start",
                                 flexWrap: "wrap",
                                 gap: 4,
-                                marginTop: 8,
+                                marginTop: 0,
                                 marginBottom: 4,
                               }}
                             >
-                              <Text strong style={{ ...typoStyle("large"), color: APP_COLORS.ink, lineHeight: 1.3 }}>
+                              <Text
+                                strong
+                                style={{ ...typoStyle("large"), color: APP_COLORS.ink, fontSize: 16, lineHeight: "24px" }}
+                              >
                                 {s.fullName}
                               </Text>
+                              <div style={{ position: "relative", width: 18, height: 18, marginLeft: 2, marginTop: 2 }}>
+                                <InviteStarMark
+                                  count={s.teachersInvitedCount}
+                                  hideOnProfile={s.isYou}
+                                  badgeSize="forumPost"
+                                />
+                              </div>
                             </div>
                             <div style={{ ...typoStyle("small"), color: APP_COLORS.muted, marginBottom: 8 }}>
                               {s.subjects.join(" · ")}
                             </div>
-                            <Tag
-                              style={{
-                                marginTop: 8,
-                                color: tier.color,
-                                background: tier.bg,
-                                borderColor: tier.border,
-                              }}
-                            >
-                              {tier.label}
-                            </Tag>
+                            <img
+                              src={`/assets/images/${TIER_MEDAL_FILE[s.tier] ?? TIER_MEDAL_FILE.bronze}`}
+                              alt={`${tier.label} medal`}
+                              height={24}
+                              style={{ marginTop: 8, width: "auto", display: "block" }}
+                            />
                           </div>
                         </div>
                       </Card>
