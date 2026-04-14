@@ -5,6 +5,19 @@
   font-weight: 700 !important;
 }
 
+/* In-page section titles using typoSectionHeading() — TYPO.heading4 (20/28). */
+.koreez-section-heading {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700 !important;
+}
+
+/* Class Access hero — semantic H1 at TYPO.heading1 (38/46); wins over .koreez-page-heading font-size. */
+h1.koreez-hero-page-title.koreez-page-heading {
+  font-size: 38px;
+  line-height: 46px;
+}
+
 /* Home — My Achievements: desktop = 4× narrow + 1× wide; small = 2+2+full-width TotY */
 .teacher-achievements-grid {
   display: grid;

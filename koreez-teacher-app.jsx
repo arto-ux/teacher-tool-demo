@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import TeachersRoomPage from "./TeachersRoomPage.jsx";
-import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong, typoPageHeading } from "./typography-tokens.js";
+import { KOREEZ_FONT_FAMILY, getKoreezAntdFontTokens, TYPO, typoStyle, typoStrong, typoPageHeading, typoSectionHeading } from "./typography-tokens.js";
 import { Drawer, Tabs, Table, Tag, Button, Modal, Space, message, Avatar, Dropdown, ConfigProvider, Collapse } from "antd";
 import {
   HomeOutlined,
@@ -12,6 +12,7 @@ import {
   QrcodeOutlined,
   RightOutlined,
   CheckOutlined,
+  CheckCircleFilled,
   BellOutlined,
   ExclamationCircleOutlined,
   ArrowDownOutlined,
@@ -23,6 +24,7 @@ import {
   DeleteOutlined,
   UserAddOutlined,
   GiftOutlined,
+  InfoCircleOutlined,
   CommentOutlined,
   PlusOutlined,
   SendOutlined,
@@ -30,7 +32,12 @@ import {
   CloseOutlined,
   SafetyCertificateOutlined,
   LineChartOutlined,
-  LockOutlined,
+  BookOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  BulbOutlined,
+  RiseOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 
 const TEACHER_AVATAR_SRC = "/assets/images/Rectavatar_teacher.jpg";
@@ -51,6 +58,12 @@ function koreezCoolSvgSrc() {
   const base = import.meta.env.BASE_URL ?? "/";
   const prefix = base.endsWith("/") ? base : `${base}/`;
   return `${prefix}assets/images/koreez_cool.svg`;
+}
+
+function classAccessClassIllustrationSrc() {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  return `${prefix}assets/images/class.png`;
 }
 
 function tierMedalAssetUrl(filename) {
@@ -89,8 +102,8 @@ const TEACHER_PROGRESS_MOCK = {
   monthlyAssignedTasks: 24,
   weeklyAssignedTasks: 6,
   invitesConvertedToPremium: TEACHER.teachersInvitedCount,
-  /** Free yearly activation slots used (0–3) after milestone; mock only. */
-  freeYearlySpotsUsed: 0,
+  /** Own-children Premium slots in use (0–3); mock only. */
+  ownKidsPremiumSlotsUsed: 1,
   /** Year-end spotlight (mock). Separate from weekly leaderboard score on board view. */
   teacherOfYearSeasonLabel: "2025–2026",
   teacherOfYearPoints: 23_408,
@@ -373,7 +386,7 @@ function groupLeaderboardByTier(rows) {
 
 const NAV_ITEMS = [
   { key: "home", Icon: HomeOutlined, label: "Home" },
-  { key: "students", Icon: TeamOutlined, label: "My Students" },
+  { key: "students", Icon: TeamOutlined, label: "Class Access" },
   { key: "teachersRoom", Icon: CommentOutlined, label: "Teachers Room" },
   { key: "assign", Icon: CheckSquareOutlined, label: "Assignments" },
   { key: "help", Icon: QuestionCircleOutlined, label: "Help" },
@@ -423,7 +436,7 @@ const TIER_LADDER_MARKER_OVERLAP_INTO_BAR = 8;
 
 const BREADCRUMB = {
   board: "Become an Innovative Education Leader",
-  students: "My Students",
+  students: "Class Access",
   teachersRoom: "Teachers Room",
 };
 
@@ -705,7 +718,7 @@ export default function App() {
             flex: 1,
             width: "100%",
             boxSizing: "border-box",
-            padding: "24px 40px 28px",
+            padding: "40px",
             maxWidth: mainContentNarrow ? 1100 : undefined,
             marginLeft: mainContentNarrow ? "auto" : undefined,
             marginRight: mainContentNarrow ? "auto" : undefined,
@@ -1277,7 +1290,7 @@ function TeacherProgressWidget() {
           minWidth: 0,
         }}
       >
-        <div className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: 0, minWidth: 0 }}>
+        <div className="koreez-section-heading" style={{ ...typoSectionHeading(), color: colors.ink, margin: 0, minWidth: 0 }}>
           My Achievements
         </div>
         <Button
@@ -1648,65 +1661,80 @@ async function copyTextToClipboard(text) {
   }
 }
 
-const STUDENT_PREMIUM_BENEFITS_INTRO =
-  "Use your personal discount link to give students access to Koreez at a reduced price. With the subscription, they will be able to:";
-
 const STUDENT_PREMIUM_BENEFITS_ITEMS = [
-  "Master the school curriculum through structured lessons",
-  "Prepare effectively for thematic and school tests",
-  "Track their results and monitor progress over time",
-  "Review correct answers and understand mistakes",
-  "Access clear explanations for every question",
-  "Collect and store certificates of achievement",
-  "See their position in the class leaderboard",
-  "Train specifically for Koreez competitions",
-  "Get early access to new learning features",
+  { Icon: BookOutlined, text: "Master the school curriculum through structured lessons" },
+  { Icon: FileTextOutlined, text: "Prepare effectively for thematic and school tests" },
+  { Icon: LineChartOutlined, text: "Track their results and monitor progress over time" },
+  { Icon: CheckCircleOutlined, text: "Review correct answers and understand mistakes" },
+  { Icon: BulbOutlined, text: "Access clear explanations for every question" },
+  { Icon: SafetyCertificateOutlined, text: "Collect and store certificates of achievement" },
+  { Icon: RiseOutlined, text: "See their position in the class leaderboard" },
+  { Icon: TrophyOutlined, text: "Train specifically for Koreez competitions" },
+  { Icon: RocketOutlined, text: "Get early access to new learning features" },
 ];
 
-/** List prices in the student app (USD). Teacher invite link applies TEACHER_YEARLY_DISCOUNT_FRACTION to yearly only. */
-const STUDENT_PREMIUM_PRICE_YEARLY = 25.99;
-const TEACHER_YEARLY_DISCOUNT_FRACTION = 0.5;
 const TEACHER_DISCOUNT_BADGE_PCT = 78;
 
-function formatStudentPriceUsd(amount) {
-  return new Intl.NumberFormat("en-US", {
+function formatAmd(amount) {
+  return new Intl.NumberFormat("hy-AM", {
     style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    currency: "AMD",
+    maximumFractionDigits: 0,
   }).format(amount);
 }
 
-const studentPremiumWithTeacherLinkYearly =
-  STUDENT_PREMIUM_PRICE_YEARLY * (1 - TEACHER_YEARLY_DISCOUNT_FRACTION);
-const studentPremiumWithTeacherLinkMonthlyEffective = studentPremiumWithTeacherLinkYearly / 12;
-const studentPremiumYearlyEffectiveMonthly = STUDENT_PREMIUM_PRICE_YEARLY / 12;
+/** Personal (individual) subscription tiers shown for comparison on Class Access page. */
+const PERSONAL_SUBSCRIPTION_AMD = [
+  { label: "1 month", total: 2490, discountPct: null, perMoApprox: null },
+  { label: "6 months", total: 11940, discountPct: 20, perMoApprox: 1990 },
+  { label: "12 months", total: 17880, discountPct: 40, perMoApprox: 1490 },
+];
 
-const STUDENT_PRICE_YEARLY_STR = formatStudentPriceUsd(STUDENT_PREMIUM_PRICE_YEARLY);
-const STUDENT_PRICE_TEACHER_YEAR_STR = formatStudentPriceUsd(studentPremiumWithTeacherLinkYearly);
-const STUDENT_PRICE_TEACHER_PER_MO_STR = formatStudentPriceUsd(studentPremiumWithTeacherLinkMonthlyEffective);
-const STUDENT_PRICE_YEARLY_PER_MO_STR = formatStudentPriceUsd(studentPremiumYearlyEffectiveMonthly);
+const CLASS_ACCESS_AMD = {
+  total: 6600,
+  perMoApprox: 550,
+  discountPct: TEACHER_DISCOUNT_BADGE_PCT,
+};
 
-const CLASS_ACCESS_DESCRIPTION =
-  "Share class access and give students 78% off annual Koreez Premium.";
+const STUDENTS_PAGE_HERO_TITLE = "Give your class Premium access at the best price";
 
-const FREE_YEARLY_SPOTS_THRESHOLD = 20;
-const FREE_YEARLY_SPOTS_COUNT = 3;
+const TEACHER_OWN_KIDS_PREMIUM_SLOTS_TOTAL = 3;
 
-/** Class Access section — single white card (achievement-style shell). */
-const classAccessCardShell = {
-  width: "100%",
+const TEACHER_PREMIUM_SHARING_TITLE = "Full access for all teachers.";
+
+const TEACHER_PREMIUM_SHARING_DESCRIPTION =
+  "When a student subscribes through any teacher, Premium works across all subjects and all teachers benefit automatically, with no coordination required.";
+
+const TEACHER_OWN_KIDS_CARD_TITLE = "Free Premium for your children";
+
+const TEACHER_OWN_KIDS_CARD_DESCRIPTION = `Teachers receive ${TEACHER_OWN_KIDS_PREMIUM_SLOTS_TOTAL} free Premium slots for their own children, giving them full access to Koreez across all subjects for the entire academic year.`;
+
+const STUDENT_PREMIUM_SECTION_DESCRIPTION =
+  "Invite students once and they'll get full access across all subjects for the entire academic year. Class Access unlocks the full Premium experience for students you invite. With Premium, they can:";
+
+const CLASS_ACCESS_HERO_BENEFITS = [
+  "Assign and manage homework",
+  "Prepare students for thematic tests",
+  "Run formative assessments",
+];
+
+const CLASS_ACCESS_PERSONAL_PLAN_CARD = {
   boxSizing: "border-box",
-  background: colors.card,
-  borderRadius: 12,
-  border: `1px solid ${colors.border}`,
-  boxShadow: "none",
-  padding: "20px",
-  minWidth: 0,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-start",
-  textAlign: "left",
+  padding: 24,
+  background: "#e6f4ff",
+  borderRadius: 24,
+};
+
+const CLASS_ACCESS_HIGHLIGHT_GRADIENT = "linear-gradient(90deg, #007BFF 0%, #7340FF 100%)";
+
+const classAccessHighlightCardStyle = {
+  boxSizing: "border-box",
+  padding: 24,
+  borderRadius: 24,
+  background: CLASS_ACCESS_HIGHLIGHT_GRADIENT,
+  boxShadow: "0 10px 28px rgba(115, 64, 255, 0.28)",
+  color: "#FFFFFF",
+  position: "relative",
 };
 
 function StudentDiscountInviteModalContent({ hint, url, qrAlt }) {
@@ -1753,131 +1781,194 @@ function StudentDiscountInviteModalContent({ hint, url, qrAlt }) {
   );
 }
 
-function FreeYearlySpotsBand({ current, threshold, spotsTotal, spotsUsed = 0 }) {
-  const unlocked = current >= threshold;
-  const progress = Math.max(0, Math.min(1, threshold ? current / threshold : 0));
-  const ringSize = 36;
-  const stroke = 2;
-  const r = (ringSize - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
-  const dashOffset = circumference * (1 - progress);
-
+function TeacherOwnKidsPremiumSlots({ usedCount, total = TEACHER_OWN_KIDS_PREMIUM_SLOTS_TOTAL }) {
+  const slotPx = 56;
+  const safeUsed = Math.max(0, Math.min(total, usedCount));
   return (
     <div
-      style={{
-        width: "100%",
-        marginTop: 0,
-        boxSizing: "border-box",
-      }}
+      role="list"
+      aria-label="Free Premium slots for your children"
+      style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, width: "100%", alignItems: "center" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, flex: "0 0 auto", alignItems: "flex-start" }}>
-          {Array.from({ length: spotsTotal }, (_, i) => {
-          const used = unlocked && i < spotsUsed;
-          const locked = !unlocked;
-          const circleBg = "#FFFFFF";
+      {Array.from({ length: total }, (_, i) => {
+        const used = i < safeUsed;
+        if (used) {
           return (
             <div
-              key={i}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 8,
-                textAlign: "center",
-              }}
+              key={`kid-slot-used-${i}`}
+              role="listitem"
+              style={{ position: "relative", width: slotPx, height: slotPx, flexShrink: 0 }}
             >
-              <div
+              <img
+                src={studentAvatarSrc(`teacher-own-kid-${i}`)}
+                alt=""
+                width={slotPx}
+                height={slotPx}
                 style={{
-                  width: 36,
-                  height: 36,
-                  minWidth: 36,
-                  boxSizing: "border-box",
+                  width: slotPx,
+                  height: slotPx,
                   borderRadius: "50%",
-                  background: circleBg,
+                  objectFit: "cover",
+                  display: "block",
+                  border: `1px solid ${colors.border}`,
+                }}
+              />
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  bottom: -1,
+                  right: -1,
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  background: colors.green5,
+                  border: "2px solid #fff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  position: "relative",
+                  boxSizing: "border-box",
                 }}
               >
-                <svg
-                  width={ringSize}
-                  height={ringSize}
-                  viewBox={`0 0 ${ringSize} ${ringSize}`}
-                  style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
-                  aria-hidden
-                >
-                  <circle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={r}
-                    fill="none"
-                    stroke="rgb(232, 236, 240)"
-                    strokeWidth={stroke}
-                  />
-                  <circle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={r}
-                    fill="none"
-                    stroke="rgb(50, 217, 161)"
-                    strokeWidth={stroke}
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset}
-                    style={{ transition: "stroke-dashoffset 0.45s ease" }}
-                  />
-                </svg>
-                {locked ? (
-                  <LockOutlined style={{ fontSize: 16, color: colors.lightGray, position: "relative", zIndex: 1 }} aria-hidden />
-                ) : used ? (
-                  <img
-                    src={studentAvatarSrc(`free-spot-used-${i}`)}
-                    alt=""
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  />
-                ) : (
-                  <CheckOutlined style={{ fontSize: 18, color: colors.green5, position: "relative", zIndex: 1 }} aria-hidden />
-                )}
-              </div>
-              {!locked ? (
-                <span
-                  style={{
-                    ...typoStyle("small"),
-                    color: used ? colors.muted : colors.ink,
-                    fontWeight: 600,
-                  }}
-                >
-                  {used ? "Used" : "Available"}
-                </span>
-              ) : null}
+                <CheckOutlined style={{ fontSize: 11, color: "#fff" }} />
+              </span>
             </div>
           );
-          })}
+        }
+        return (
+          <div
+            key={`kid-slot-empty-${i}`}
+            role="listitem"
+            aria-label="Available slot for your child"
+            style={{
+              width: slotPx,
+              height: slotPx,
+              minWidth: slotPx,
+              boxSizing: "border-box",
+              borderRadius: "50%",
+              border: `2px dashed ${colors.border}`,
+              background: colors.card,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <PlusOutlined style={{ fontSize: 22, color: colors.muted }} aria-hidden />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PremiumSharingAndTeacherKidsSection({ ownKidsSlotsUsed }) {
+  const teacherBenefitCardStyle = {
+    boxSizing: "border-box",
+    padding: 24,
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    background: colors.card,
+    width: "100%",
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  return (
+    <section style={{ marginTop: 40, width: "100%" }} aria-label="Teacher Premium benefits">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          width: "100%",
+        }}
+      >
+        <div style={teacherBenefitCardStyle}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "24px 32px",
+              width: "100%",
+            }}
+          >
+            <div style={{ flex: "1 1 0", minWidth: 0, maxWidth: 700 }}>
+              <h2
+                id="teacher-benefits-full-access-heading"
+                className="koreez-section-heading"
+                style={{ ...typoSectionHeading(), color: colors.ink, margin: "0 0 12px" }}
+              >
+                {TEACHER_PREMIUM_SHARING_TITLE}
+              </h2>
+              <p
+                style={{
+                  ...typoStyle("large"),
+                  color: colors.text,
+                  margin: 0,
+                  lineHeight: 1.55,
+                }}
+              >
+                {TEACHER_PREMIUM_SHARING_DESCRIPTION}
+              </p>
+            </div>
+            <div
+              style={{
+                flex: "0 0 auto",
+                marginLeft: "auto",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src={classAccessClassIllustrationSrc()}
+                alt="Class illustration: teacher and students"
+                width={200}
+                height={200}
+                style={{
+                  width: "100%",
+                  maxWidth: 200,
+                  height: "auto",
+                  display: "block",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+          </div>
         </div>
 
-        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
-          <span style={{ fontSize: 12, lineHeight: "20px", fontWeight: 400, color: "rgba(0,0,0,0.45)" }}>
-            {current}/{threshold} students join premium via your invite.
-          </span>
+        <div style={teacherBenefitCardStyle}>
+          <h2
+            id="teacher-benefits-kids-slots-heading"
+            className="koreez-section-heading"
+            style={{ ...typoSectionHeading(), color: colors.ink, margin: "0 0 12px" }}
+          >
+            {TEACHER_OWN_KIDS_CARD_TITLE}
+          </h2>
+          <p
+            style={{
+              ...typoStyle("large"),
+              color: colors.text,
+              margin: "0 0 20px",
+              lineHeight: 1.55,
+              maxWidth: 700,
+            }}
+          >
+            {TEACHER_OWN_KIDS_CARD_DESCRIPTION}
+          </p>
+          <TeacherOwnKidsPremiumSlots usedCount={ownKidsSlotsUsed} />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
 function StudentsPage() {
   useEffect(() => {
     const prev = document.title;
-    document.title = "My Students · Koreez";
+    document.title = "Class Access · Koreez";
     return () => {
       document.title = prev;
     };
@@ -1887,7 +1978,6 @@ function StudentsPage() {
   const [payFor, setPayFor] = useState(null);
   const [profileFor, setProfileFor] = useState(null);
   const [bulkLinkOpen, setBulkLinkOpen] = useState(false);
-  const [premiumBenefitsDrawerOpen, setPremiumBenefitsDrawerOpen] = useState(false);
   const [bulkLinkUrl, setBulkLinkUrl] = useState("");
   const [bulkLinkTitle, setBulkLinkTitle] = useState("");
   const [bulkLinkHint, setBulkLinkHint] = useState(
@@ -2042,119 +2132,260 @@ function StudentsPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-          <h1 className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: 0 }}>
-            Class Access
-          </h1>
-          <Button
-            onClick={() => setPremiumBenefitsDrawerOpen(true)}
-            icon={<ExclamationCircleOutlined style={{ color: colors.blue }} />}
-            style={{ fontWeight: 600 }}
-            aria-label="Open included benefits"
-          />
-        </div>
-        <div style={classAccessCardShell}>
-          <div style={{ width: "100%" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 420px", minWidth: 0 }}>
+      <header style={{ marginBottom: 40 }}>
+        <h1
+          className="koreez-page-heading koreez-hero-page-title"
+          style={{ color: colors.ink, margin: 0, maxWidth: 900 }}
+        >
+          {STUDENTS_PAGE_HERO_TITLE}
+        </h1>
+        <ul
+          style={{
+            listStyle: "none",
+            margin: "14px 0 0",
+            padding: 0,
+            maxWidth: 900,
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center",
+            columnGap: 20,
+            rowGap: 8,
+          }}
+        >
+          {CLASS_ACCESS_HERO_BENEFITS.map((line) => (
+            <li
+              key={line}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                ...typoStyle("large"),
+                color: colors.text,
+                lineHeight: 1.45,
+              }}
+            >
+              <CheckCircleFilled
+                aria-hidden
+                style={{ color: colors.green5, fontSize: TYPO.large.fontSize, flexShrink: 0 }}
+              />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      </header>
+
+      <div>
+        <h2 className="koreez-section-heading" style={{ ...typoSectionHeading(), color: colors.ink, margin: "0 0 16px" }}>
+          Compare plans
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            gap: 24,
+            flexWrap: "wrap",
+            width: "100%",
+          }}
+        >
+          <div style={{ ...CLASS_ACCESS_PERSONAL_PLAN_CARD, flex: "1 1 280px", minWidth: 0 }}>
+            <div
+              style={{
+                ...typoStyle("base"),
+                fontWeight: 700,
+                color: "#1677ff",
+                marginBottom: 12,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Individual plan
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 10,
+                width: "100%",
+              }}
+            >
+              {PERSONAL_SUBSCRIPTION_AMD.map((row) => (
                 <div
+                  key={row.label}
                   style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 4,
+                    boxSizing: "border-box",
+                    border: "1px solid #69b1ff",
+                    borderRadius: 12,
+                    padding: "14px 8px",
+                    textAlign: "center",
+                    background: "transparent",
                   }}
                 >
-                  <span style={{ ...typoStyle("heading5"), fontWeight: 700, color: colors.ink, fontSize: 20, lineHeight: "28px" }}>
-                    {STUDENT_PRICE_TEACHER_YEAR_STR}
-                    <span style={{ ...typoStyle("base"), fontWeight: 600, color: colors.ink }}>/yr</span>
-                  </span>
-                  <Tag
+                  <div
                     style={{
-                      margin: 0,
-                      background: "rgb(188, 255, 125)",
-                      color: colors.ink,
-                      border: "none",
+                      ...typoStyle("base"),
                       fontWeight: 700,
-                      fontSize: 14,
-                      lineHeight: "22px",
-                      padding: "2px 8px",
-                      borderRadius: 999,
+                      color: "#1677ff",
+                      marginBottom: 8,
                     }}
                   >
-                    -{TEACHER_DISCOUNT_BADGE_PCT}%
-                  </Tag>
+                    {row.label === "12 months" ? "1 year" : row.label}
+                  </div>
+                  <div style={{ ...typoStyle("base"), color: "#1677ff" }}>{formatAmd(row.total)}</div>
                 </div>
-                <div style={{ ...typoStyle("base"), fontSize: 12, lineHeight: "20px", color: colors.muted, marginBottom: 0 }}>
-                  Only $1 per month instead of $4.69
-                </div>
-                <p style={{ ...typoStyle("base"), color: colors.muted, margin: "8px 0 0", lineHeight: 1.55 }}>
-                  {CLASS_ACCESS_DESCRIPTION}
-                  <br />
-                  After {FREE_YEARLY_SPOTS_THRESHOLD} students join via your link, you can invite{" "}
-                  {FREE_YEARLY_SPOTS_COUNT} students to use Premium for free.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                <Button
-                  type="primary"
-                  icon={<GiftOutlined />}
-                  onClick={openBulkLinkModal}
-                  style={{ borderRadius: 8, fontWeight: 400, flexShrink: 0 }}
-                >
-                  Share class access
-                </Button>
-              </div>
+              ))}
             </div>
-
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${colors.border}` }}>
-              <FreeYearlySpotsBand
-                current={TEACHER_PROGRESS_MOCK.invitesConvertedToPremium}
-                threshold={FREE_YEARLY_SPOTS_THRESHOLD}
-                spotsTotal={FREE_YEARLY_SPOTS_COUNT}
-                spotsUsed={TEACHER_PROGRESS_MOCK.freeYearlySpotsUsed ?? 0}
+            <p
+              style={{
+                ...typoStyle("small"),
+                color: "#4096ff",
+                margin: "14px 0 0",
+                lineHeight: 1.5,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              <InfoCircleOutlined
+                aria-hidden
+                style={{ fontSize: TYPO.small.fontSize, color: "#4096ff", flexShrink: 0, marginTop: 2 }}
               />
+              <span>Students who already subscribe on an Individual plan can switch to Class Access to get the same savings.</span>
+            </p>
+          </div>
+          <div style={{ ...classAccessHighlightCardStyle, flex: "1 1 280px", minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <span
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                zIndex: 2,
+                ...typoStyle("small"),
+                fontWeight: 700,
+                color: "#FFFFFF",
+                background: "transparent",
+                padding: "5px 12px",
+                borderRadius: 999,
+                border: "1px solid rgba(255, 255, 255, 0.65)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                boxShadow: "none",
+              }}
+            >
+              Best value
+            </span>
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "flex",
+                flexDirection: "column",
+                flex: "1 1 auto",
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  ...typoStyle("base"),
+                  fontWeight: 700,
+                  color: "#FFFFFF",
+                  marginBottom: 10,
+                  paddingRight: 96,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Class Access
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ ...typoStyle("heading5"), fontWeight: 700, color: "#FFFFFF", fontSize: 20, lineHeight: "28px" }}>
+                  {formatAmd(CLASS_ACCESS_AMD.total)} per year
+                </span>
+                <Tag
+                  style={{
+                    margin: 0,
+                    background: "rgb(188, 255, 125)",
+                    color: colors.ink,
+                    border: "none",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    lineHeight: "22px",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                  }}
+                >
+                  {`\u2013${CLASS_ACCESS_AMD.discountPct}%`}
+                </Tag>
+              </div>
+              <div
+                style={{
+                  ...typoStyle("small"),
+                  color: "rgba(255, 255, 255, 0.88)",
+                  marginBottom: 0,
+                  lineHeight: 1.55,
+                  maxWidth: 340,
+                }}
+              >
+                {formatAmd(CLASS_ACCESS_AMD.perMoApprox)}/month per student compared to{" "}
+                {formatAmd(PERSONAL_SUBSCRIPTION_AMD[0].total)}/month of individual plan.
+              </div>
+              <Button
+                type="default"
+                icon={<GiftOutlined />}
+                onClick={openBulkLinkModal}
+                style={{ borderRadius: 8, alignSelf: "flex-start", marginTop: 16 }}
+              >
+                Share class access
+              </Button>
             </div>
+            <img
+              src={koreezCoolSvgSrc()}
+              alt=""
+              width={96}
+              height={96}
+              aria-hidden
+              style={{
+                position: "absolute",
+                bottom: 8,
+                right: 8,
+                width: 96,
+                height: 96,
+                objectFit: "contain",
+                pointerEvents: "none",
+                zIndex: 0,
+              }}
+            />
           </div>
         </div>
+
+        <section style={{ marginTop: 40, width: "100%" }} aria-labelledby="student-premium-benefits-heading">
+          <h2
+            id="student-premium-benefits-heading"
+            className="koreez-section-heading"
+            style={{ ...typoSectionHeading(), color: colors.ink, margin: "0 0 12px" }}
+          >
+            What students get with Premium
+          </h2>
+          <p
+            style={{
+              ...typoStyle("large"),
+              color: colors.text,
+              margin: "0 0 24px",
+              maxWidth: 700,
+              lineHeight: 1.55,
+            }}
+          >
+            {STUDENT_PREMIUM_SECTION_DESCRIPTION}
+          </p>
+          <StudentPremiumBenefitsSection />
+        </section>
+
+        <PremiumSharingAndTeacherKidsSection ownKidsSlotsUsed={TEACHER_PROGRESS_MOCK.ownKidsPremiumSlotsUsed ?? 0} />
       </div>
 
-      <Drawer
-        id="student-premium-benefits-drawer"
-        title={(
-          <span style={{ ...typoStyle("large"), fontWeight: 600, color: colors.ink, fontFamily: "inherit" }}>
-            What students get with Premium
-          </span>
-        )}
-        placement="right"
-        width={560}
-        open={premiumBenefitsDrawerOpen}
-        onClose={() => setPremiumBenefitsDrawerOpen(false)}
-        destroyOnClose
-        styles={{
-          content: { fontFamily: "inherit" },
-          header: {
-            fontFamily: "inherit",
-            borderBottom: `1px solid ${colors.border}`,
-            padding: "14px 20px",
-          },
-          body: {
-            fontFamily: "inherit",
-            padding: "16px 20px 28px",
-            background: colors.card,
-          },
-        }}
-        maskStyle={{ background: "rgba(26, 26, 46, 0.45)" }}
-      >
-        <StudentPremiumBenefitsDrawerContent />
-      </Drawer>
-
-      <h1 className="koreez-page-heading" style={{ ...typoPageHeading(), color: colors.ink, margin: "0 0 16px" }}>
-        My Students
-      </h1>
+      <h2 className="koreez-section-heading" style={{ ...typoSectionHeading(), color: colors.ink, margin: "40px 0 16px" }}>
+        Your classes
+      </h2>
 
       {CLASSES.length === 0 ? (
         <div style={{ ...typoStyle("base"), color: colors.muted, padding: "24px 0" }}>
@@ -2452,32 +2683,52 @@ function LeaderboardScoreTab({
   );
 }
 
-function StudentPremiumBenefitsDrawerContent() {
+function StudentPremiumBenefitsSection() {
   return (
     <div style={{ ...typoStyle("base"), color: colors.text }}>
-      <p style={{ margin: "0 0 16px", color: colors.ink }}>{STUDENT_PREMIUM_BENEFITS_INTRO}</p>
-      <ul style={{ margin: 0, paddingLeft: 20 }}>
-        {STUDENT_PREMIUM_BENEFITS_ITEMS.map((item) => (
-          <li key={item} style={{ marginBottom: 8 }}>
-            {item}
+      <ul
+        style={{
+          margin: 0,
+          padding: 0,
+          listStyle: "none",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 16,
+        }}
+      >
+        {STUDENT_PREMIUM_BENEFITS_ITEMS.map(({ Icon, text }) => (
+          <li key={text} style={{ display: "flex", minHeight: 0 }}>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                boxSizing: "border-box",
+                background: colors.card,
+                borderRadius: 12,
+                padding: 20,
+                border: `1px solid ${colors.border}`,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 16,
+              }}
+            >
+              <span
+                style={{
+                  flexShrink: 0,
+                  color: colors.blue,
+                  display: "inline-flex",
+                  marginTop: 2,
+                  lineHeight: 1,
+                }}
+                aria-hidden
+              >
+                <Icon style={{ fontSize: 18 }} />
+              </span>
+              <span style={{ lineHeight: 1.45 }}>{text}</span>
+            </div>
           </li>
         ))}
       </ul>
-      <img
-        src={koreezCoolSvgSrc()}
-        alt=""
-        width={96}
-        height={96}
-        style={{
-          display: "block",
-          marginTop: 20,
-          marginLeft: "auto",
-          marginRight: "auto",
-          width: 96,
-          height: 96,
-          objectFit: "contain",
-        }}
-      />
     </div>
   );
 }

@@ -62,12 +62,20 @@ export function typoStrong(key) {
 }
 
 /**
- * Primary in-app page / section titles (nav destinations): H3 metrics, bold.
+ * Primary in-app page titles (nav destinations): H3 metrics (24/32), bold.
  * Pair with `className="koreez-page-heading"` (see src/index.css) so weight wins over Ant reset/CSS-in-JS.
  * Add `color` and `margin` at call sites.
  */
 export function typoPageHeading() {
   return { ...typoStyle("heading3"), fontWeight: 700 };
+}
+
+/**
+ * Secondary section titles within a page (e.g. “Compare plans”): H4 metrics (20/28), bold.
+ * Pair with `className="koreez-section-heading"` (see src/index.css).
+ */
+export function typoSectionHeading() {
+  return { ...typoStyle("heading4"), fontWeight: 700 };
 }
 
 /**
