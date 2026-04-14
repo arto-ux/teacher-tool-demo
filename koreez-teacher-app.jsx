@@ -1788,7 +1788,7 @@ function TeacherOwnKidsPremiumSlots({ usedCount, total = TEACHER_OWN_KIDS_PREMIU
     <div
       role="list"
       aria-label="Free Premium slots for your children"
-      style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}
+      style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}
     >
       {Array.from({ length: total }, (_, i) => {
         const used = i < safeUsed;
@@ -1889,7 +1889,7 @@ function PremiumSharingAndTeacherKidsSection({ ownKidsSlotsUsed }) {
             style={{
               display: "flex",
               flexWrap: "wrap",
-              alignItems: "center",
+              alignItems: "flex-start",
               gap: "24px 32px",
               width: "100%",
             }}
@@ -1919,7 +1919,7 @@ function PremiumSharingAndTeacherKidsSection({ ownKidsSlotsUsed }) {
                 marginLeft: "auto",
                 display: "flex",
                 justifyContent: "center",
-                alignItems: "center",
+                alignItems: "flex-start",
               }}
             >
               <img
