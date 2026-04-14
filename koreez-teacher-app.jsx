@@ -388,6 +388,7 @@ const NAV_ITEMS = [
   { key: "home", Icon: HomeOutlined, label: "Home" },
   { key: "students", Icon: TeamOutlined, label: "Class Access" },
   { key: "teachersRoom", Icon: CommentOutlined, label: "Teachers Room" },
+  { key: "flow", Icon: LineChartOutlined, label: "Flow" },
   { key: "assign", Icon: CheckSquareOutlined, label: "Assignments" },
   { key: "help", Icon: QuestionCircleOutlined, label: "Help" },
   { key: "messages", Icon: MailOutlined, label: "Feedback" },
@@ -438,6 +439,7 @@ const BREADCRUMB = {
   board: "Become an Innovative Education Leader",
   students: "Class Access",
   teachersRoom: "Teachers Room",
+  flow: "Flow",
 };
 
 const LEADERBOARD_ACADEMIC_LINE = "Academic Year 2025–2026 · Updated weekly";
@@ -476,6 +478,8 @@ function AppBreadcrumb({ page, onGoHome }) {
       ? BREADCRUMB.students
       : page === "teachersRoom"
         ? BREADCRUMB.teachersRoom
+        : page === "flow"
+          ? BREADCRUMB.flow
         : BREADCRUMB.board;
 
   return (
@@ -523,6 +527,7 @@ export default function App() {
   const isPrimaryNavActive = (key) => {
     if (key === "students") return page === "students";
     if (key === "teachersRoom") return page === "teachersRoom";
+    if (key === "flow") return page === "flow";
     if (key === "home") return page === "home" || page === "board";
     return false;
   };
@@ -531,6 +536,7 @@ export default function App() {
     if (key === "home") setPage("home");
     else if (key === "students") setPage("students");
     else if (key === "teachersRoom") setPage("teachersRoom");
+    else if (key === "flow") setPage("flow");
   };
 
   const handleSecondaryNavClick = () => {
@@ -538,7 +544,7 @@ export default function App() {
   };
 
   const mainContentNarrow =
-    page === "home" || page === "teachersRoom" || page === "students" || page === "board";
+    page === "home" || page === "teachersRoom" || page === "students" || page === "board" || page === "flow";
 
   return (
     <ConfigProvider theme={{ token: getKoreezAntdFontTokens() }}>
@@ -734,6 +740,8 @@ export default function App() {
               currentTeacherName={TEACHER.name}
               teachersInvitedCount={TEACHER.teachersInvitedCount}
             />
+          ) : page === "flow" ? (
+            <FlowPage />
           ) : (
             <BoardPage activeTab={activeTab} setActiveTab={setActiveTab} fullWidth />
           )}
@@ -952,6 +960,108 @@ function HomePage({ onOpenBoard }) {
         ))}
       </div>
     </>
+  );
+}
+
+const TEACHER_FLOW_STEPS = [
+  {
+    title: "Teacher joins Koreez",
+    detail: "A teacher signs up and becomes an active account in your school.",
+  },
+  {
+    title: "Creates a class",
+    detail: "The teacher sets up at least one class and prepares student onboarding.",
+  },
+  {
+    title: "Invites students to join",
+    detail: "Invite links or class codes are shared with students and families.",
+  },
+  {
+    title: "Class Access unlocks after a few tasks",
+    detail: "After students complete a few tasks, Class Access unlocks for the whole class.",
+  },
+  {
+    title: "Teacher shares discount link",
+    detail: "The teacher sends a personalized Premium discount link to students.",
+  },
+  {
+    title: "Students join Premium",
+    detail: "Students convert to paid Premium through the teacher's invite journey.",
+  },
+];
+
+function FlowPage() {
+  return (
+    <section aria-label="User flow demo">
+      <header style={{ marginBottom: 24 }}>
+        <h1 className="koreez-page-heading" style={{ margin: 0, ...typoPageHeading(), color: colors.ink }}>
+          Flow
+        </h1>
+        <p style={{ ...typoStyle("base"), color: colors.muted, margin: "8px 0 0" }}>
+          Demo journey from teacher onboarding to student Premium conversion.
+        </p>
+      </header>
+
+      <div
+        style={{
+          background: colors.card,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 12,
+          padding: 24,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {TEACHER_FLOW_STEPS.map((step, index) => {
+            const isLast = index === TEACHER_FLOW_STEPS.length - 1;
+            return (
+              <div key={step.title} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      background: "#EBF4FF",
+                      color: colors.blue,
+                      ...typoStrong("small"),
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+                  {!isLast ? (
+                    <div
+                      aria-hidden
+                      style={{
+                        width: 2,
+                        minHeight: 34,
+                        marginTop: 8,
+                        background: colors.border,
+                      }}
+                    />
+                  ) : null}
+                </div>
+                {!isLast ? (
+                  <div style={{ paddingTop: 2, minWidth: 0 }}>
+                    <div style={{ ...typoStyle("large"), color: colors.ink, fontWeight: 700 }}>{step.title}</div>
+                    <div style={{ ...typoStyle("base"), color: colors.text, marginTop: 4 }}>{step.detail}</div>
+                  </div>
+                ) : null}
+                {isLast ? (
+                  <div style={{ paddingTop: 2, minWidth: 0 }}>
+                    <div style={{ ...typoStyle("large"), color: colors.ink, fontWeight: 700 }}>{step.title}</div>
+                    <div style={{ ...typoStyle("base"), color: colors.text, marginTop: 4 }}>{step.detail}</div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1993,6 +2103,9 @@ function StudentsPage() {
       return { cls, rows };
     });
   }, [students]);
+  const ambassadorGoal = 20;
+  const premiumStudentsCount = useMemo(() => students.filter((s) => s.isPremium).length, [students]);
+  const ambassadorProgressRatio = Math.min(premiumStudentsCount / ambassadorGoal, 1);
 
   const openClassInviteModal = useCallback((classId) => {
     setInviteClassId(classId);
@@ -2357,6 +2470,61 @@ function StudentsPage() {
             />
           </div>
         </div>
+
+        <section
+          style={{
+            marginTop: 16,
+            background: colors.card,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 12,
+            padding: 16,
+          }}
+          aria-label="Ambassador badge progress"
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <img
+                src={tierMedalAssetUrl("ambassador.svg")}
+                alt="Ambassador badge"
+                width={40}
+                height={40}
+                style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ ...typoStyle("base"), fontWeight: 700, color: colors.ink }}>
+                  Ambassador badge: invite 20 students to Premium
+                </div>
+                <div style={{ ...typoStyle("small"), color: colors.text, marginTop: 2 }}>
+                  Motivate your class to activate through your Class Access link.
+                </div>
+              </div>
+            </div>
+            <div style={{ ...typoStyle("base"), color: colors.ink, fontWeight: 700, flexShrink: 0 }}>
+              {premiumStudentsCount}/{ambassadorGoal} students
+            </div>
+          </div>
+          <div
+            aria-hidden
+            style={{
+              marginTop: 12,
+              width: "100%",
+              height: 8,
+              borderRadius: 999,
+              background: "#DCEFE4",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${ambassadorProgressRatio * 100}%`,
+                height: "100%",
+                background: "#52c41a",
+                borderRadius: 999,
+                transition: "width 0.3s ease",
+              }}
+            />
+          </div>
+        </section>
 
         <section style={{ marginTop: 40, width: "100%" }} aria-labelledby="student-premium-benefits-heading">
           <h2
