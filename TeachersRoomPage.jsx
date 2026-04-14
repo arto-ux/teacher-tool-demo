@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
-import { TYPO, typoStyle, typoStrong, typoPageHeading } from "./typography-tokens.js";
+import { TYPO, typoStyle, typoStrong } from "./typography-tokens.js";
 import {
   Button,
   Modal,
@@ -756,7 +756,7 @@ export default function TeachersRoomPage({ currentTeacherId, currentTeacherName,
   return (
     <div style={{ maxWidth: 1160, margin: "0 auto" }}>
       <div style={{ marginBottom: 16 }}>
-        <h1 className="koreez-page-heading" style={{ margin: 0, ...typoPageHeading(), color: APP_COLORS.ink }}>
+        <h1 className="koreez-page-heading koreez-hero-page-title" style={{ margin: 0, color: APP_COLORS.ink }}>
           Teachers Room
         </h1>
       </div>
